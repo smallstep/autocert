@@ -35,7 +35,7 @@ With properly configured mTLS, services can be safely exposed directly to the pu
 
 Here's a rough approximation of how an mTLS handshake works:
 
-![mTLS handshake diagram](https://raw.githubusercontent.com/smallstep/autocert/mtls-handshake.png)
+![mTLS handshake diagram](https://raw.githubusercontent.com/smallstep/autocert/master/mtls-handshake.png)
 
 A few things to note:
 
