@@ -111,7 +111,7 @@ Where `<ca-password>` is the password you entered during `step ca init` and `<au
 Next, we'll install the CA.
 
 ```
-$ kubectl apply -f https://raw.githubusercontent.com/smallstep/certificates/master/autocert/install/01-step-ca.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/smallstep/autocert/master/install/01-step-ca.yaml
 ```
 
 Once you've done this you can delete the temporary `$STEPPATH` directory and `unset STEPPATH` (though you may want to retain it as a backup).
@@ -121,7 +121,7 @@ Once you've done this you can delete the temporary `$STEPPATH` directory and `un
 Install the `autocert` controller.
 
 ```
-$ kubectl apply -f https://raw.githubusercontent.com/smallstep/certificates/master/autocert/install/02-autocert.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/smallstep/autocert/master/install/02-autocert.yaml
 ```
 
 Autocert creates secrets containing single-use bootstrap tokens for pods to authenticate with the CA and obtain a certificate. The tokens are automatically cleaned up after they expire. To do this, `autocert` needs permission to create and delete secrets in your cluster.
@@ -129,7 +129,7 @@ Autocert creates secrets containing single-use bootstrap tokens for pods to auth
 If you have RBAC enabled in your cluster, apply `rbac.yaml` to give `autocert` these permissions.
 
 ```
-$ kubectl apply -f https://raw.githubusercontent.com/smallstep/certificates/master/autocert/install/03-rbac.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/smallstep/autocert/master/install/03-rbac.yaml
 ```
 
 Finally, register the `autocert` mutation webhook with kubernetes.
@@ -177,4 +177,4 @@ autocert-webhook-config   2019-01-17T22:57:57Z
 
 ### Move on to usage instructions
 
-Make sure to follow the autocert usage steps at https://github.com/smallstep/certificates/tree/master/autocert#usage
+Make sure to follow the autocert usage steps at https://github.com/smallstep/autocert/blob/master/README.md#usage
