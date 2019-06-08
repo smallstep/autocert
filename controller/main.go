@@ -12,14 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/smallstep/cli/utils"
-
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/smallstep/certificates/ca"
 	"github.com/smallstep/cli/crypto/pemutil"
 	"github.com/smallstep/cli/crypto/pki"
+	"github.com/smallstep/cli/utils"
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,6 +38,7 @@ const (
 	volumeMountPath               = "/var/run/autocert.step.sm"
 	tokenSecretKey                = "token"
 	tokenSecretLabel              = "autocert.step.sm/token"
+	tokenLifetime                 = 5 * time.Minute
 )
 
 // Config options for the autocert admission controller.
@@ -609,8 +609,8 @@ func main() {
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/healthz" {
 				log.Info("/healthz")
-				fmt.Fprintf(w, "ok")
 				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("ok"))
 				return
 			}
 

@@ -1,0 +1,33 @@
+language: go
+go:
+- 1.12.x
+addons:
+  apt:
+    packages:
+    - debhelper
+    - fakeroot
+    - bash-completion
+env:
+  global:
+  - V=1
+before_script:
+- make bootstrap
+script:
+- make
+- make artifacts
+after_success:
+- bash <(curl -s https://codecov.io/bash) -t "$CODECOV_TOKEN" || echo "Codecov did
+  not collect coverage reports"
+notifications:
+  email: false
+stage: Github Release
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: FnnFvnk6XhMghBbqXIhRqikgIJ5e/ygJKKl0eNEVh4o8Tcfpbu558ljsHGTxJhED6UN3MMo9JQZvFTRWAgj/difG4rNb9BEqV7gEddZQRMh2+DEHBIhOyLmcU9gqqkcFZcfNK+568NRYi5psGmJYsT9E9i09eW4vsQ2NMlW+ckg6/3XJ2iuIDCmP1achXBpwP+/pQbPNIcbmrGI0Qv0VEC5sr9BShgNRRu+LtQ+aV+hAHVFBHTknTuVrPl6JHuTqnIbun30deWOGprIIdx4YvLyNK9JPtst+yGTSWmsleQv7m2FSeYmn2R7KOwAcIxOQHM+1/WVNMy4lL+oH2CT1Y+MGZhIC+pt/2Z8Ac15KK05bz58tcjvITH7Vfj8i86T/8YjqbqzQfostwmGJlnD3TtgXdSsO0NhVj+UA4xjPXQvnQnHQ+F6uT6xFqnoKzOi4DVTbxQJ0v8dK627eunO4HcZee3svi+l+Bo/0tUHypHkr9zQ+6Xk5QTsJftrYXVLh+teePh41l0/7xI5pEKoCUAVlZkku7ynrt19WU3Ab3QptaoPHM/awtmAlwInzJPFBEoruR42GMgmEcw1tPFXHMNSRYWW+TQvHnV8xnKvrSTT0o7G/pMQKf6uVznk7MNasnv+DABsbGWC+OyvfjrzgWGiMNAq5Qd4eN1zv5d5Ood4=
+  file_glob: true
+  file: ".travis-releases/*"
+  on:
+    repo: smallstep/autocert
+    tags: true

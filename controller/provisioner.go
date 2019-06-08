@@ -16,9 +16,9 @@ import (
 	"github.com/smallstep/cli/token/provision"
 )
 
-const (
-	tokenLifetime = 5 * time.Minute
-)
+// const (
+// 	tokenLifetime = 5 * time.Minute
+// )
 
 // Provisioner is an authorized entity that can sign tokens necessary for
 // signature requests.
