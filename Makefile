@@ -261,15 +261,15 @@ docker-release: docker-release-candidate docker-push-tag-latest
 #########################################
 
 changelog:
-	$Q echo "step-certificates ($(VERSION)) unstable; urgency=medium" > debian/changelog
+	$Q echo "autocert ($(VERSION)) unstable; urgency=medium" > debian/changelog
 	$Q echo >> debian/changelog
-	$Q echo "  * See https://github.com/smallstep/certificates/releases" >> debian/changelog
+	$Q echo "  * See https://github.com/smallstep/autocert/releases" >> debian/changelog
 	$Q echo >> debian/changelog
 	$Q echo " -- Smallstep Labs, Inc. <techadmin@smallstep.com>  $(shell date -uR)" >> debian/changelog
 
 debian: changelog
 	$Q mkdir -p $(RELEASE); \
-	OUTPUT=../step-certificates_*.deb; \
+	OUTPUT=../autocert_*.deb; \
 	rm $$OUTPUT; \
 	dpkg-buildpackage -b -rfakeroot -us -uc && cp $$OUTPUT $(RELEASE)/
 
@@ -293,7 +293,7 @@ binary-darwin:
 
 define BUNDLE
 	$(q)BUNDLE_DIR=$(BINARY_OUTPUT)$(1)/bundle; \
-	stepName=step-certificates_$(2); \
+	stepName=autocert_$(2); \
  	mkdir -p $$BUNDLE_DIR $(RELEASE); \
 	TMP=$$(mktemp -d $$BUNDLE_DIR/tmp.XXXX); \
 	trap "rm -rf $$TMP" EXIT INT QUIT TERM; \
@@ -301,7 +301,7 @@ define BUNDLE
 	mkdir -p $$newdir/bin; \
 	cp $(BINARY_OUTPUT)$(1)/bin/$(BINNAME) $$newdir/bin/; \
 	cp README.md $$newdir/; \
-	NEW_BUNDLE=$(RELEASE)/step-certificates_$(2)_$(1)_$(3).tar.gz; \
+	NEW_BUNDLE=$(RELEASE)/autocert_$(2)_$(1)_$(3).tar.gz; \
 	rm -f $$NEW_BUNDLE; \
     tar -zcvf $$NEW_BUNDLE -C $$TMP $$stepName;
 endef
@@ -318,15 +318,15 @@ bundle-darwin: binary-darwin
 # Targets for creating OS specific artifacts and archives
 #################################################
 
-artifacts-linux-tag: bundle-linux debian
+artifacts-linux-tag: bundle-linux # skip debian
 
 artifacts-darwin-tag: bundle-darwin
 
 artifacts-archive-tag:
 	$Q mkdir -p $(RELEASE)
-	$Q git archive v$(VERSION) | gzip > $(RELEASE)/step-certificates_$(VERSION).tar.gz
+	$Q git archive v$(VERSION) | gzip > $(RELEASE)/autocert_$(VERSION).tar.gz
 
-artifacts-tag: artifacts-linux-tag artifacts-darwin-tag artifacts-archive-tag
+artifacts-tag: artifacts-linux-tag artifacts-archive-tag # skip artifacts-darwin-tag
 
 .PHONY: artifacts-linux-tag artifacts-darwin-tag artifacts-archive-tag artifacts-tag
 
