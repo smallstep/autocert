@@ -58,13 +58,13 @@ spec:
           periodSeconds: 3
         volumeMounts:
         - name: config
-          mountPath: /home/step/.step/config
+          mountPath: /home/step/config
           readOnly: true
         - name: certs
-          mountPath: /home/step/.step/certs
+          mountPath: /home/step/certs
           readOnly: true
         - name: secrets
-          mountPath: /home/step/.step/secrets
+          mountPath: /home/step/secrets
           readOnly: true
         - name: ca-password
           mountPath: /home/step/password
