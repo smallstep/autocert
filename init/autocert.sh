@@ -6,7 +6,7 @@ echo "Welcome to Autocert configuration. Press return to begin."
 read ANYKEY
 
 
-STEPPATH=/home/step/.step
+STEPPATH=/home/step
 
 CA_PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32 ; echo '')
 AUTOCERT_PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32 ; echo '')
