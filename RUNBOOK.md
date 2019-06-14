@@ -18,13 +18,13 @@ kubectl -n step get secret autocert-password -o jsonpath='{$.data.password}' | b
 
 ```
 export CA_POD=$(kubectl -n step get pods -l app=ca -o jsonpath={$.items[0].metadata.name})
-kubectl -n step exec -it $CA_POD step certificate fingerprint /home/step/.step/certs/root_ca.crt
+kubectl -n step exec -it $CA_POD step certificate fingerprint /home/step/certs/root_ca.crt
 ```
 
 > Tip: Some slight fanciness is necessary to trim this string if you want to put it into an environment variable:
 >
 > ```
-> export FINGERPRINT="$(kubectl -n step exec -it $CA_POD step certificate fingerprint /home/step/.step/certs/root_ca.crt | tr -d '[:space:]')"
+> export FINGERPRINT="$(kubectl -n step exec -it $CA_POD step certificate fingerprint /home/step/certs/root_ca.crt | tr -d '[:space:]')"
 > ```
 
 #### Inspect a certificate

@@ -70,8 +70,6 @@ For older versions of `step`:
 * Edit `$(step path)/config/defaults.json` to change base paths to `/home/step` and remove port from CA URL
 
 ```
-$ sed -i "" "s|$(step path)|/home/step/.step|g" $(step path)/config/ca.json
-$ sed -i "" "s|$(step path)|/home/step/.step|g" $(step path)/config/defaults.json
 $ sed -i "" "s|ca.step.svc.cluster.local:4443|ca.step.svc.cluster.local|" $(step path)/config/defaults.json
 ```
 
