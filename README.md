@@ -47,8 +47,6 @@ Features include:
 
 ## Getting Started
 
-> ⚠️ Warning: *this project is in **ALPHA**. DON'T use it for anything mission critical. EXPECT breaking changes in minor revisions with little or no warning. PLEASE [provide feedback](https://github.com/smallstep/autocert/issues/new?template=autocert_enhancement.md).*
-
 ### Prerequisites
 
 All you need to get started is [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl) and a cluster running kubernetes `1.9` or later with [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks) enabled:
@@ -72,6 +70,16 @@ kubectl run autocert-init -it --rm --image smallstep/autocert-init --restart Nev
 💥 installation complete.
 
 > You might want to [check out what this command does](init/autocert.sh) before running it. You can also [install `autocert` manually](INSTALL.md#manual-install) if that's your style.
+
+Autocert can also be installed using the [Helm](https://helm.sh) package
+manager, to install the repository and `autocert` run:
+
+```bash
+helm repo add smallstep https://smallstep.github.io/helm-charts/
+helm install smallstep/autocert
+```
+
+You can see all the configuration options at https://hub.helm.sh/charts/smallstep/autocert.
 
 ## Usage
 
