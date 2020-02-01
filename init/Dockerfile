@@ -8,6 +8,8 @@ ENV CA_URL="ca.step.svc.cluster.local"
 
 ENV KUBE_LATEST_VERSION="v1.14.3"
 
+ENV AUTO_START=false
+
 USER root
 RUN curl -L https://storage.googleapis.com/kubernetes-release/release/${KUBE_LATEST_VERSION}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl \
  && chmod +x /usr/local/bin/kubectl
