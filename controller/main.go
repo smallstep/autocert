@@ -35,6 +35,7 @@ var (
 const (
 	admissionWebhookAnnotationKey = "autocert.step.sm/name"
 	admissionWebhookStatusKey     = "autocert.step.sm/status"
+	durationWebhookStatusKey      = "autocert.step.sm/duration"
 	volumeMountPath               = "/var/run/autocert.step.sm"
 	tokenSecretKey                = "token"
 	tokenSecretLabel              = "autocert.step.sm/token"
@@ -245,7 +246,7 @@ func createTokenSecret(prefix, namespace, token string) (string, error) {
 // mkBootstrapper generates a bootstrap container based on the template defined in Config. It
 // generates a new bootstrap token and mounts it, along with other required configuration, as
 // environment variables in the returned bootstrap container.
-func mkBootstrapper(config *Config, commonName string, namespace string, provisioner *ca.Provisioner) (corev1.Container, error) {
+func mkBootstrapper(config *Config, podName, commonName, duration, namespace string, provisioner *ca.Provisioner) (corev1.Container, error) {
 	b := config.Bootstrapper
 
 	token, err := provisioner.Token(commonName)
@@ -271,6 +272,10 @@ func mkBootstrapper(config *Config, commonName string, namespace string, provisi
 		Name:  "COMMON_NAME",
 		Value: commonName,
 	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "DURATION",
+		Value: duration,
+	})
 
 	b.Env = append(b.Env, corev1.EnvVar{
 		Name: "STEP_TOKEN",
@@ -295,15 +300,44 @@ func mkBootstrapper(config *Config, commonName string, namespace string, provisi
 		Name:  "STEP_NOT_AFTER",
 		Value: config.CertLifetime,
 	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "POD_NAME",
+		Value: podName,
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "NAMESPACE",
+		Value: namespace,
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "CLUSTER_DOMAIN",
+		Value: config.ClusterDomain,
+	})
+
 	return b, nil
 }
 
 // mkRenewer generates a new renewer based on the template provided in Config.
-func mkRenewer(config *Config) corev1.Container {
+func mkRenewer(config *Config, podName, commonName, namespace string) corev1.Container {
 	r := config.Renewer
 	r.Env = append(r.Env, corev1.EnvVar{
 		Name:  "STEP_CA_URL",
 		Value: config.CaURL,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "COMMON_NAME",
+		Value: commonName,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "POD_NAME",
+		Value: podName,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "NAMESPACE",
+		Value: namespace,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "CLUSTER_DOMAIN",
+		Value: config.ClusterDomain,
 	})
 	return r
 }
@@ -413,10 +447,16 @@ func addAnnotations(existing, new map[string]string) (ops []PatchOperation) {
 func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Provisioner) ([]byte, error) {
 	var ops []PatchOperation
 
+	name := pod.ObjectMeta.GetName()
+	if name == "" {
+		name = pod.ObjectMeta.GetGenerateName()
+	}
+
 	annotations := pod.ObjectMeta.GetAnnotations()
 	commonName := annotations[admissionWebhookAnnotationKey]
-	renewer := mkRenewer(config)
-	bootstrapper, err := mkBootstrapper(config, commonName, namespace, provisioner)
+	duration := annotations[durationWebhookStatusKey]
+	renewer := mkRenewer(config, name, commonName, namespace)
+	bootstrapper, err := mkBootstrapper(config, name, commonName, duration, namespace, provisioner)
 	if err != nil {
 		return nil, err
 	}
@@ -610,7 +650,7 @@ func main() {
 			if r.URL.Path == "/healthz" {
 				log.Info("/healthz")
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("ok"))
+				fmt.Fprintln(w, "ok")
 				return
 			}
 
