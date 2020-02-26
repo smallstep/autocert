@@ -16,8 +16,8 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/smallstep/certificates/ca"
+	"github.com/smallstep/certificates/pki"
 	"github.com/smallstep/cli/crypto/pemutil"
-	"github.com/smallstep/cli/crypto/pki"
 	"github.com/smallstep/cli/utils"
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -615,8 +615,8 @@ func main() {
 	}
 
 	provisioner, err := ca.NewProvisioner(
-		provisionerName, provisionerKid, config.CaURL,
-		config.GetRootCAPath(), password)
+		provisionerName, provisionerKid, config.CaURL, password,
+		ca.WithRootFile(config.GetRootCAPath()))
 	if err != nil {
 		log.Errorf("Error loading provisioner: %v", err)
 		os.Exit(1)
