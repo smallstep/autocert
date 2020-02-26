@@ -375,8 +375,6 @@ https://golang.org/pkg/crypto/
 
 This project is based on four docker containers. They use [multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/) so all you need in order to build them is `docker`.
 
-> Caveat: the `controller` container uses [`dep`](https://github.com/golang/dep) and `dep init` isn't run during the build. You'll need to run `dep init` in the `controller/` subdirectory prior to building, and you'll need to run `dep ensure -update` if you change any dependencies.
-
 Building `autocert-controller` (the admission webhook):
 
 ```
