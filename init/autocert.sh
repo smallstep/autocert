@@ -123,8 +123,8 @@ kubectl apply -f https://raw.githubusercontent.com/smallstep/autocert/master/ins
 kubectl apply -f https://raw.githubusercontent.com/smallstep/autocert/master/install/03-rbac.yaml
 kubectl -n step rollout status deployment/autocert
 
-# Some `base64`s wrap lines... no thanks!
-CA_BUNDLE=$(cat $(step path)/certs/root_ca.crt | base64 | tr -d '\n')
+# -w means disable wrapping for `base64`, https://linux.die.net/man/1/base64
+CA_BUNDLE=$(cat $(step path)/certs/root_ca.crt | base64 -w 0)
 
 cat <<EOF | kubectl apply -f -
 apiVersion: admissionregistration.k8s.io/v1beta1

@@ -146,7 +146,7 @@ webhooks:
         name: autocert
         namespace: step
         path: "/mutate"
-      caBundle: $(cat $(step path)/certs/root_ca.crt | base64)
+      caBundle: $(cat $(step path)/certs/root_ca.crt | base64 -w 0)
     rules:
       - operations: ["CREATE"]
         apiGroups: [""]
