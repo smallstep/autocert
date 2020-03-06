@@ -3,8 +3,10 @@
 #set -x
 
 echo "Welcome to Autocert configuration. Press return to begin."
-read ANYKEY
 
+if [ "$AUTO_START" = false ] ; then
+    read ANYKEY
+fi
 
 STEPPATH=/home/step
 
