@@ -1,0 +1,61 @@
+module github.com/smallstep/autocert
+
+go 1.14
+
+require (
+	github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9
+	github.com/alecthomas/gometalinter v3.0.0+incompatible
+	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf
+	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
+	github.com/client9/misspell v0.3.4
+	github.com/dgraph-io/badger v1.5.3
+	github.com/dgryski/go-farm v0.0.0-20190423205320-6a90982ecee2
+	github.com/ghodss/yaml v1.0.0
+	github.com/go-chi/chi v4.0.3-0.20190316151245-d08916613452+incompatible
+	github.com/go-sql-driver/mysql v1.4.1
+	github.com/gogo/protobuf v0.0.0-20171007142547-342cbe0a0415
+	github.com/golang/protobuf v1.3.1
+	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
+	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
+	github.com/gordonklaus/ineffassign v0.0.0-20180909121442-1003c8bd00dc
+	github.com/json-iterator/go v0.0.0-20180701071628-ab8a2e0c74be
+	github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a
+	github.com/konsorten/go-windows-terminal-sequences v1.0.2
+	github.com/lunixbochs/vtclean v1.0.0
+	github.com/manifoldco/promptui v0.3.2
+	github.com/mattn/go-colorable v0.1.1
+	github.com/mattn/go-isatty v0.0.7
+	github.com/mmcloughlin/avo v0.0.0-20190515040033-83fbad1a6b3c
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
+	github.com/modern-go/reflect2 v1.0.1
+	github.com/newrelic/go-agent v1.11.0
+	github.com/nicksnyder/go-i18n v1.10.0
+	github.com/pelletier/go-toml v1.2.0
+	github.com/pkg/errors v0.8.1
+	github.com/rs/xid v1.2.1
+	github.com/samfoo/ansi v0.0.0-20160124022901-b6bd2ded7189
+	github.com/shurcooL/sanitized_anchor_name v1.0.0
+	github.com/sirupsen/logrus v1.4.0
+	github.com/smallstep/certificates v0.10.1-0.20190524182959-167912cfbd71
+	github.com/smallstep/cli v0.10.1
+	github.com/smallstep/nosql v0.0.0-20190506222908-b66b34823456
+	github.com/tsenart/deadcode v0.0.0-20160724212837-210d2dc333e9
+	github.com/urfave/cli v1.20.1-0.20190203184040-693af58b4d51
+	go.etcd.io/bbolt v1.3.2
+	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
+	golang.org/x/net v0.0.0-20190327214358-63eda1eb0650
+	golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc
+	golang.org/x/text v0.3.0
+	golang.org/x/tools v0.0.0-20190328030505-8f05a32dce9f
+	google.golang.org/appengine v1.6.0
+	google.golang.org/genproto v0.0.0-20190605220351-eb0b1bdb6ae6
+	google.golang.org/grpc v1.21.1
+	gopkg.in/alecthomas/kingpin.v3-unstable v3.0.0-20171010053543-63abe20a23e2
+	gopkg.in/inf.v0 v0.9.0
+	gopkg.in/square/go-jose.v2 v2.3.1
+	gopkg.in/yaml.v2 v2.2.2
+	k8s.io/api v0.0.0-20190327184913-92d2ee7fc726
+	k8s.io/apimachinery v0.0.0-20190326224424-4ceb6b6c5db5
+	k8s.io/klog v0.2.1-0.20190306015804-8e90cee79f82
+	sigs.k8s.io/yaml v1.1.0
+)

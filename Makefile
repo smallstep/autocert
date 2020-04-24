@@ -15,34 +15,6 @@ all: build test lint
 
 .PHONY: all
 
-#########################################
-# Bootstrapping
-#########################################
-
-bootstra%:
-	$Q which dep || go get github.com/golang/dep/cmd/dep
-	$Q dep ensure
-
-vendor: Gopkg.lock
-	$Q dep ensure
-
-BOOTSTRAP=\
-	github.com/golang/lint/golint \
-	github.com/client9/misspell/cmd/misspell \
-	github.com/gordonklaus/ineffassign \
-	github.com/tsenart/deadcode \
-	github.com/alecthomas/gometalinter
-
-define VENDOR_BIN_TMPL
-vendor/bin/$(notdir $(1)): vendor
-	$Q go build -o $$@ ./vendor/$(1)
-VENDOR_BINS += vendor/bin/$(notdir $(1))
-endef
-
-$(foreach pkg,$(BOOTSTRAP),$(eval $(call VENDOR_BIN_TMPL,$(pkg))))
-
-.PHONY: bootstra% vendor
-
 #################################################
 # Determine the type of `push` and `version`
 #################################################
@@ -77,8 +49,7 @@ GOFLAGS := CGO_ENABLED=0
 build: $(PREFIX)bin/$(BINNAME)
 	@echo "Build Complete!"
 
-$(PREFIX)bin/$(BINNAME): vendor $(call rwildcard,*.go)
-	$Q mkdir -p $(@D)
+$(PREFIX)bin/$(BINNAME):
 	$Q $(GOOS_OVERRIDE) $(GOFLAGS) go build -v -o $(PREFIX)bin/$(BINNAME) $(LDFLAGS) $(PKG)
 
 # Target for building without calling dep ensure
