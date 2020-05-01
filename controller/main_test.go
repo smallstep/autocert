@@ -1,8 +1,11 @@
 package main
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"reflect"
 	"testing"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestGetClusterDomain(t *testing.T) {
@@ -71,5 +74,36 @@ func TestShouldMutateNotRestrictToNamespace(t *testing.T) {
 	}, "kube-system", "cluster.local", false)
 	if mutationAllowed == false {
 		t.Errorf("shouldMutate should return true even with a wrong namespace if restrictToNamespace is false.")
+	}
+}
+
+func Test_mkRenewer(t *testing.T) {
+	type args struct {
+		config     *Config
+		podName    string
+		commonName string
+		namespace  string
+	}
+	tests := []struct {
+		name string
+		args args
+		want corev1.Container
+	}{
+		{"ok", args{&Config{CaURL: "caURL", ClusterDomain: "clusterDomain"}, "podName", "commonName", "namespace"}, corev1.Container{
+			Env: []corev1.EnvVar{
+				{Name: "STEP_CA_URL", Value: "caURL"},
+				{Name: "COMMON_NAME", Value: "commonName"},
+				{Name: "POD_NAME", Value: "podName"},
+				{Name: "NAMESPACE", Value: "namespace"},
+				{Name: "CLUSTER_DOMAIN", Value: "clusterDomain"},
+			},
+		}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := mkRenewer(tt.args.config, tt.args.podName, tt.args.commonName, tt.args.namespace); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("mkRenewer() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

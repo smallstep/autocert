@@ -109,12 +109,22 @@ default       Active   59m   enabled
 
 ### Annotate pods to get certificates
 
-To get a certificate you need to tell `autocert` your workload's name using the `autocert.step.sm/name` annotation (this name will appear as the X.509 common name and SAN).
+To get a certificate you need to tell `autocert` your workload's name using the
+`autocert.step.sm/name` annotation (this name will appear as the X.509 common
+name and SAN).
 
-Let's deploy a [simple mTLS server](examples/hello-mtls/go/server/server.go) named `hello-mtls.default.svc.cluster.local`:
+It's also possible to define the duration of the certificate using the
+annotation `autocert.step.sm/duration`, a duration is a sequence of decimal
+numbers, each with optional fraction and a unit suffix, such as "300ms", "1.5h"
+or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". Take
+into account that the container will crash if the duration is not between the
+limits defined by the used provisioner, the defaults are 5m and 24h.
+
+Let's deploy a [simple mTLS server](examples/hello-mtls/go/server/server.go)
+named `hello-mtls.default.svc.cluster.local`:
 
 ```yaml
-cat <<EOF | kubectl apply -f - 
+cat <<EOF | kubectl apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata: {name: hello-mtls, labels: {app: hello-mtls}}
@@ -135,7 +145,8 @@ spec:
 EOF
 ```
 
-In our new container we should find a certificate, private key, and root certificate mounted at `/var/run/autocert.step.sm`:
+In our new container we should find a certificate, private key, and root
+certificate mounted at `/var/run/autocert.step.sm`:
 
 ```bash
 $ export HELLO_MTLS=$(kubectl get pods -l app=hello-mtls -o jsonpath={$.items[0].metadata.name})
@@ -143,7 +154,51 @@ $ kubectl exec -it $HELLO_MTLS -c hello-mtls -- ls /var/run/autocert.step.sm
 root.crt  site.crt  site.key
 ```
 
-We're done. Our container has a certificate, issued by our CA, which `autocert` will automatically renew.
+We're done. Our container has a certificate, issued by our CA, which `autocert`
+will automatically renew.
+
+Now let's deploy another server with a `autocert.step.sm/duration`:
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: hello-mtls-1h, labels: {app: hello-mtls-1h}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: hello-mtls-1h}}
+  template:
+    metadata:
+      annotations:
+        autocert.step.sm/name: hello-mtls-1h.default.svc.cluster.local
+        autocert.step.sm/duration: 1h
+      labels: {app: hello-mtls-1h}
+    spec:
+      containers:
+      - name: hello-mtls
+        image: smallstep/hello-mtls-server-go:latest
+EOF
+```
+
+The container will have also the certificates and key, but the duration will be
+valid for one hour, and it will also autorenew:
+
+```bash
+$ export HELLO_MTLS_1H=$(kubectl get pods -l app=hello-mtls-1h -o jsonpath={$.items[0].metadata.name})
+$ kubectl exec -it $HELLO_MTLS_1H -c hello-mtls -- ls /var/run/autocert.step.sm
+root.crt  site.crt  site.key
+$ kubectl exec -it $HELLO_MTLS_1H -c hello-mtls -- cat /var/run/autocert.step.sm/site.crt | step certificate inspect --short -
+X.509v3 TLS Certificate (ECDSA P-256) [Serial: 3182...1140]
+  Subject:     hello-mtls-1h.default.svc.cluster.local
+  Issuer:      Autocert Intermediate CA
+  Provisioner: autocert [ID: A1lX...ty1Q]
+  Valid from:  2020-04-30T01:58:17Z
+          to:  2020-04-30T02:58:17Z
+```
+
+Durations are specially useful if the `step-ca` provisioner is configured with a
+maximum duration larger than the default one, it can be used by services that
+cannot handle the reload of the certificates in a graceful way.
 
 ✅ Certificates.
 
@@ -374,8 +429,6 @@ https://golang.org/pkg/crypto/
 ## Building
 
 This project is based on four docker containers. They use [multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/) so all you need in order to build them is `docker`.
-
-> Caveat: the `controller` container uses [`dep`](https://github.com/golang/dep) and `dep init` isn't run during the build. You'll need to run `dep init` in the `controller/` subdirectory prior to building, and you'll need to run `dep ensure -update` if you change any dependencies.
 
 Building `autocert-controller` (the admission webhook):
 

@@ -20,28 +20,10 @@ all: build test lint
 #########################################
 
 bootstra%:
-	$Q which dep || go get github.com/golang/dep/cmd/dep
-	$Q dep ensure
+	# Using a released version of golangci-lint to take into account custom replacements in their go.mod
+	$Q curl -sSfL https://raw.githubusercontent.com/smallstep/cli/master/make/golangci-install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.19.1
 
-vendor: Gopkg.lock
-	$Q dep ensure
-
-BOOTSTRAP=\
-	github.com/golang/lint/golint \
-	github.com/client9/misspell/cmd/misspell \
-	github.com/gordonklaus/ineffassign \
-	github.com/tsenart/deadcode \
-	github.com/alecthomas/gometalinter
-
-define VENDOR_BIN_TMPL
-vendor/bin/$(notdir $(1)): vendor
-	$Q go build -o $$@ ./vendor/$(1)
-VENDOR_BINS += vendor/bin/$(notdir $(1))
-endef
-
-$(foreach pkg,$(BOOTSTRAP),$(eval $(call VENDOR_BIN_TMPL,$(pkg))))
-
-.PHONY: bootstra% vendor
+.PHONY: bootstra%
 
 #################################################
 # Determine the type of `push` and `version`
@@ -74,10 +56,13 @@ DATE    := $(shell date -u '+%Y-%m-%d %H:%M UTC')
 LDFLAGS := -ldflags='-w -X "main.Version=$(VERSION)" -X "main.BuildTime=$(DATE)"'
 GOFLAGS := CGO_ENABLED=0
 
+download:
+	$Q go mod download
+
 build: $(PREFIX)bin/$(BINNAME)
 	@echo "Build Complete!"
 
-$(PREFIX)bin/$(BINNAME): vendor $(call rwildcard,*.go)
+$(PREFIX)bin/$(BINNAME): download $(call rwildcard,*.go)
 	$Q mkdir -p $(@D)
 	$Q $(GOOS_OVERRIDE) $(GOFLAGS) go build -v -o $(PREFIX)bin/$(BINNAME) $(LDFLAGS) $(PKG)
 
@@ -115,37 +100,17 @@ vtest:
 
 .PHONY: test vtest
 
-integrate: integration
-
-integration: bin/$(BINNAME)
-	$Q $(GOFLAGS) go test -tags=integration ./integration/...
-
-.PHONY: integrate integration
-
 #########################################
 # Linting
 #########################################
 
-LINTERS=\
-	gofmt \
-	golint \
-	vet \
-	misspell \
-	ineffassign \
-	deadcode
-
-$(patsubst %,%-bin,$(filter-out gofmt vet,$(LINTERS))): %-bin: vendor/bin/%
-gofmt-bin vet-bin:
-
-$(LINTERS): %: vendor/bin/gometalinter %-bin vendor
-	$Q PATH=`pwd`/vendor/bin:$$PATH gometalinter --tests --disable-all --vendor \
-	     --deadline=5m -s data -s pkg --enable $@ ./...
 fmt:
 	$Q gofmt -l -w $(SRC)
 
-lint: $(LINTERS)
+lint:
+	$Q LOG_LEVEL=error golangci-lint run
 
-.PHONY: $(LINTERS) lint fmt
+.PHONY: lint fmt
 
 #########################################
 # Install
@@ -166,8 +131,6 @@ uninstall:
 #########################################
 
 clean:
-	@echo "You will need to run 'make bootstrap' or 'dep ensure' directly to re-download any dependencies."
-	$Q rm -rf vendor
 ifneq ($(BINNAME),"")
 	$Q rm -f bin/$(BINNAME)
 endif
@@ -240,6 +203,29 @@ docker-login:
 	$Q docker login -u="$(DOCKER_USERNAME)" -p="$(DOCKER_PASSWORD)"
 
 .PHONY: docker-login docker-tag docker-push-tag docker-push-tag-latest
+
+#################################################
+# Docker images for development
+#################################################
+
+DOCKER_DEV_TAG=docker tag smallstep/$(1):latest localhost:5000/$(1):latest
+DOCKER_DEV_PUSH=docker push localhost:5000/$(1):latest
+
+docker-dev: docker
+	$(call DOCKER_DEV_TAG,autocert-controller)
+	$(call DOCKER_DEV_TAG,autocert-init)
+	$(call DOCKER_DEV_TAG,autocert-bootstrapper)
+	$(call DOCKER_DEV_TAG,autocert-renewer)
+	$(call DOCKER_DEV_PUSH,autocert-controller)
+	$(call DOCKER_DEV_PUSH,autocert-init)
+	$(call DOCKER_DEV_PUSH,autocert-bootstrapper)
+	$(call DOCKER_DEV_PUSH,autocert-renewer)
+
+# starts docker registry for development
+docker-registry:
+	$Q docker run -d -p 5000:5000 --restart=always --name registry registry:2
+
+.PHONY: docker-dev docker-registry
 
 #################################################
 # Targets for pushing the docker images
