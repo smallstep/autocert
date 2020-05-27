@@ -10,3 +10,4 @@ fi
 chmod 644 $CRT $KEY
 
 step ca root $STEP_ROOT
+chmod 644 $STEP_ROOT
