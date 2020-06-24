@@ -1,7 +1,7 @@
 ---
 name: Autocert Enhancement
 about: Suggest an enhancement to autocert
-labels: area/autocert enhancement
+labels: enhancement, needs triage
 ---
 
 ### What would you like to be added

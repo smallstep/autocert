@@ -1,7 +1,7 @@
 ---
 name: Autocert Bug
 about: Report a bug you found in autocert
-labels: area/autocert bug
+labels: bug, needs triage
 ---
 
 ### Subject of the issue
