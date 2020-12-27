@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 # Download the root certificate and set permissions
 if [ "$DURATION" == "" ];
 then
