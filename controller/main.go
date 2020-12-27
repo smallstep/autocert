@@ -36,6 +36,8 @@ const (
 	admissionWebhookStatusKey     = "autocert.step.sm/status"
 	tlsNameAnnotationKey          = "autocert.step.sm/name"
 	tlsDurationAnnotationKey      = "autocert.step.sm/duration"
+	sshHostNameAnnotationKey      = "autocert.step.sm/ssh-host-name"
+	sshHostDurationAnnotationKey  = "autocert.step.sm/ssh-host-duration"
 	volumeMountPath               = "/var/run/autocert.step.sm"
 	tokenSecretKey                = "token"
 	tokenSecretLabel              = "autocert.step.sm/token"
@@ -51,6 +53,9 @@ type Config struct {
 	CertLifetime                    string           `yaml:"certLifetime"`
 	Bootstrapper                    corev1.Container `yaml:"bootstrapper"`
 	Renewer                         corev1.Container `yaml:"renewer"`
+	SSHHostCertLifetime             string           `yaml:"sshHostCertLifetime"`
+	SSHHostBootstrapper             corev1.Container `yaml:"sshHostBootstrapper"`
+	SSHHostRenewer                  corev1.Container `yaml:"sshHostRenewer"`
 	CertsVolume                     corev1.Volume    `yaml:"certsVolume"`
 	RestrictCertificatesToNamespace bool             `yaml:"restrictCertificatesToNamespace"`
 	ClusterDomain                   string           `yaml:"clusterDomain"`
@@ -67,6 +72,12 @@ type IdentityRequest interface {
 type TLSIdentityRequest struct {
 	commonName string
 	duration   string
+}
+
+type SSHIdentityRequest struct {
+	hostCert bool
+	keyID    string
+	duration string
 }
 
 // GetAddress returns the address set in the configuration, defaults to ":4443"
@@ -203,6 +214,127 @@ func (req TLSIdentityRequest) mkRenewer(config *Config, podName, namespace strin
 	r.Env = append(r.Env, corev1.EnvVar{
 		Name:  "COMMON_NAME",
 		Value: req.commonName,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "POD_NAME",
+		Value: podName,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "NAMESPACE",
+		Value: namespace,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "CLUSTER_DOMAIN",
+		Value: config.ClusterDomain,
+	})
+	return r
+}
+
+// getSubject returns the identity being requested, so it can be validated
+func (req SSHIdentityRequest) getSubject() string {
+	return req.keyID
+}
+
+// mkBootstrapper generates a bootstrap container based on the template defined in Config. It
+// generates a new bootstrap token and mounts it, along with other required configuration, as
+// environment variables in the returned bootstrap container.
+func (req SSHIdentityRequest) mkBootstrapper(config *Config, fingerprint, podName, namespace string, provisioner *ca.Provisioner) (corev1.Container, error) {
+	var b corev1.Container
+	var certType string
+
+	if req.hostCert {
+		b = config.SSHHostBootstrapper
+		certType = "host"
+	} else {
+		return b, errors.New("Client SSH certificates not supported")
+	}
+
+	token, err := provisioner.SSHToken(certType, req.keyID, []string{})
+	if err != nil {
+		return b, errors.Wrap(err, "ssh token generation")
+	}
+
+	secretName, err := createTokenSecret(req.keyID+"-", namespace, token)
+	if err != nil {
+		return b, errors.Wrap(err, "create ssh token secret")
+	}
+	log.Infof("SSH secret name is: %s", secretName)
+
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name: "STEP_TOKEN",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: secretName,
+				},
+				Key: tokenSecretKey,
+			},
+		},
+	})
+	if req.hostCert {
+		b.Env = append(b.Env, corev1.EnvVar{
+			Name:  "STEP_HOST",
+			Value: "true",
+		})
+	}
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "KEY_ID",
+		Value: req.keyID,
+	})
+	if req.duration != "" {
+		b.Env = append(b.Env, corev1.EnvVar{
+			Name:  "STEP_NOT_AFTER",
+			Value: req.duration,
+		})
+	} else {
+	  var lifetime string
+	  if req.hostCert {
+	    lifetime = config.SSHHostCertLifetime
+	  } else {
+			return b, errors.New("Client SSH certificates not supported")
+	  }
+		b.Env = append(b.Env, corev1.EnvVar{
+			Name:  "STEP_NOT_AFTER",
+			Value: lifetime,
+		})
+	}
+
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "STEP_CA_URL",
+		Value: config.CaURL,
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "STEP_FINGERPRINT",
+		Value: fingerprint,
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "POD_NAME",
+		Value: podName,
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "NAMESPACE",
+		Value: namespace,
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "CLUSTER_DOMAIN",
+		Value: config.ClusterDomain,
+	})
+
+	return b, nil
+}
+
+// mkRenewer generates a new renewer based on the template provided in Config.
+func (req SSHIdentityRequest) mkRenewer(config *Config, podName, namespace string) corev1.Container {
+	r := config.SSHHostRenewer
+	if req.hostCert {
+		r.Env = append(r.Env, corev1.EnvVar{
+			Name:  "STEP_HOST",
+			Value: "true",
+		})
+	}
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "STEP_CA_URL",
+		Value: config.CaURL,
 	})
 	r.Env = append(r.Env, corev1.EnvVar{
 		Name:  "POD_NAME",
@@ -567,7 +699,13 @@ func mutate(review *v1beta1.AdmissionReview, config *Config, provisioner *ca.Pro
 		duration: annotations[tlsDurationAnnotationKey],
 	}
 
-	potentialIdReqs := []IdentityRequest{tlsReq}
+	sshHostReq := SSHIdentityRequest{
+		hostCert: true,
+		keyID: annotations[sshHostNameAnnotationKey],
+		duration: annotations[sshHostDurationAnnotationKey],
+	}
+
+	potentialIdReqs := []IdentityRequest{tlsReq, sshHostReq}
 	idReqs := []IdentityRequest{}
 
 	for _, ireq := range potentialIdReqs {
