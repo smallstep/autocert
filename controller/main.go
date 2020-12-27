@@ -33,9 +33,9 @@ var (
 )
 
 const (
-	admissionWebhookAnnotationKey = "autocert.step.sm/name"
 	admissionWebhookStatusKey     = "autocert.step.sm/status"
-	durationWebhookStatusKey      = "autocert.step.sm/duration"
+	tlsNameAnnotationKey          = "autocert.step.sm/name"
+	tlsDurationAnnotationKey      = "autocert.step.sm/duration"
 	volumeMountPath               = "/var/run/autocert.step.sm"
 	tokenSecretKey                = "token"
 	tokenSecretLabel              = "autocert.step.sm/token"
@@ -56,6 +56,17 @@ type Config struct {
 	ClusterDomain                   string           `yaml:"clusterDomain"`
 	RootCAPath                      string           `yaml:"rootCAPath"`
 	ProvisionerPasswordPath         string           `yaml:"provisionerPasswordPath"`
+}
+
+type IdentityRequest interface {
+	getSubject() string
+	mkBootstrapper(config *Config, fingerprint, podName, namespace string, provisioner *ca.Provisioner) (corev1.Container, error)
+	mkRenewer(config *Config, podName, namespace string) corev1.Container
+}
+
+type TLSIdentityRequest struct {
+	commonName string
+	duration   string
 }
 
 // GetAddress returns the address set in the configuration, defaults to ":4443"
@@ -107,6 +118,105 @@ func (c Config) GetProvisionerPasswordPath() string {
 	}
 
 	return "/home/step/password/password"
+}
+
+// getSubject returns the identity being requested, so it can be validated
+func (req TLSIdentityRequest) getSubject() string {
+	return req.commonName
+}
+
+// mkBootstrapper generates a bootstrap container based on the template defined in Config. It
+// generates a new bootstrap token and mounts it, along with other required configuration, as
+// environment variables in the returned bootstrap container.
+func (req TLSIdentityRequest) mkBootstrapper(config *Config, fingerprint, podName, namespace string, provisioner *ca.Provisioner) (corev1.Container, error) {
+	b := config.Bootstrapper
+
+	token, err := provisioner.Token(req.commonName)
+	if err != nil {
+		return b, errors.Wrap(err, "tls token generation")
+	}
+
+	secretName, err := createTokenSecret(req.commonName+"-", namespace, token)
+	if err != nil {
+		return b, errors.Wrap(err, "create tls token secret")
+	}
+	log.Infof("TLS secret name is: %s", secretName)
+
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name: "STEP_TOKEN",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: secretName,
+				},
+				Key: tokenSecretKey,
+			},
+		},
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "COMMON_NAME",
+		Value: req.commonName,
+	})
+	if req.duration != "" {
+		b.Env = append(b.Env, corev1.EnvVar{
+			Name:  "STEP_NOT_AFTER",
+			Value: req.duration,
+		})
+	} else {
+		b.Env = append(b.Env, corev1.EnvVar{
+			Name:  "STEP_NOT_AFTER",
+			Value: config.CertLifetime,
+		})
+	}
+
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "STEP_CA_URL",
+		Value: config.CaURL,
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "STEP_FINGERPRINT",
+		Value: fingerprint,
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "POD_NAME",
+		Value: podName,
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "NAMESPACE",
+		Value: namespace,
+	})
+	b.Env = append(b.Env, corev1.EnvVar{
+		Name:  "CLUSTER_DOMAIN",
+		Value: config.ClusterDomain,
+	})
+
+	return b, nil
+}
+
+// mkRenewer generates a new renewer based on the template provided in Config.
+func (req TLSIdentityRequest) mkRenewer(config *Config, podName, namespace string) corev1.Container {
+	r := config.Renewer
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "STEP_CA_URL",
+		Value: config.CaURL,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "COMMON_NAME",
+		Value: req.commonName,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "POD_NAME",
+		Value: podName,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "NAMESPACE",
+		Value: namespace,
+	})
+	r.Env = append(r.Env, corev1.EnvVar{
+		Name:  "CLUSTER_DOMAIN",
+		Value: config.ClusterDomain,
+	})
+	return r
 }
 
 // PatchOperation represents a RFC6902 JSONPatch Operation
@@ -243,105 +353,6 @@ func createTokenSecret(prefix, namespace, token string) (string, error) {
 	return created.Name, err
 }
 
-// mkBootstrapper generates a bootstrap container based on the template defined in Config. It
-// generates a new bootstrap token and mounts it, along with other required configuration, as
-// environment variables in the returned bootstrap container.
-func mkBootstrapper(config *Config, podName, commonName, duration, namespace string, provisioner *ca.Provisioner) (corev1.Container, error) {
-	b := config.Bootstrapper
-
-	token, err := provisioner.Token(commonName)
-	if err != nil {
-		return b, errors.Wrap(err, "token generation")
-	}
-
-	// Generate CA fingerprint
-	crt, err := pemutil.ReadCertificate(config.GetRootCAPath())
-	if err != nil {
-		return b, errors.Wrap(err, "CA fingerprint")
-	}
-	sum := sha256.Sum256(crt.Raw)
-	fingerprint := strings.ToLower(hex.EncodeToString(sum[:]))
-
-	secretName, err := createTokenSecret(commonName+"-", namespace, token)
-	if err != nil {
-		return b, errors.Wrap(err, "create token secret")
-	}
-	log.Infof("Secret name is: %s", secretName)
-
-	b.Env = append(b.Env, corev1.EnvVar{
-		Name:  "COMMON_NAME",
-		Value: commonName,
-	})
-	b.Env = append(b.Env, corev1.EnvVar{
-		Name:  "DURATION",
-		Value: duration,
-	})
-
-	b.Env = append(b.Env, corev1.EnvVar{
-		Name: "STEP_TOKEN",
-		ValueFrom: &corev1.EnvVarSource{
-			SecretKeyRef: &corev1.SecretKeySelector{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: secretName,
-				},
-				Key: tokenSecretKey,
-			},
-		},
-	})
-	b.Env = append(b.Env, corev1.EnvVar{
-		Name:  "STEP_CA_URL",
-		Value: config.CaURL,
-	})
-	b.Env = append(b.Env, corev1.EnvVar{
-		Name:  "STEP_FINGERPRINT",
-		Value: fingerprint,
-	})
-	b.Env = append(b.Env, corev1.EnvVar{
-		Name:  "STEP_NOT_AFTER",
-		Value: config.CertLifetime,
-	})
-	b.Env = append(b.Env, corev1.EnvVar{
-		Name:  "POD_NAME",
-		Value: podName,
-	})
-	b.Env = append(b.Env, corev1.EnvVar{
-		Name:  "NAMESPACE",
-		Value: namespace,
-	})
-	b.Env = append(b.Env, corev1.EnvVar{
-		Name:  "CLUSTER_DOMAIN",
-		Value: config.ClusterDomain,
-	})
-
-	return b, nil
-}
-
-// mkRenewer generates a new renewer based on the template provided in Config.
-func mkRenewer(config *Config, podName, commonName, namespace string) corev1.Container {
-	r := config.Renewer
-	r.Env = append(r.Env, corev1.EnvVar{
-		Name:  "STEP_CA_URL",
-		Value: config.CaURL,
-	})
-	r.Env = append(r.Env, corev1.EnvVar{
-		Name:  "COMMON_NAME",
-		Value: commonName,
-	})
-	r.Env = append(r.Env, corev1.EnvVar{
-		Name:  "POD_NAME",
-		Value: podName,
-	})
-	r.Env = append(r.Env, corev1.EnvVar{
-		Name:  "NAMESPACE",
-		Value: namespace,
-	})
-	r.Env = append(r.Env, corev1.EnvVar{
-		Name:  "CLUSTER_DOMAIN",
-		Value: config.ClusterDomain,
-	})
-	return r
-}
-
 func addContainers(existing, new []corev1.Container, path string) (ops []PatchOperation) {
 	if len(existing) == 0 {
 		return []PatchOperation{
@@ -444,7 +455,7 @@ func addAnnotations(existing, new map[string]string) (ops []PatchOperation) {
 //  - Add the `certs` volume definition
 //  - Annotate the pod to indicate that it's been processed by this controller
 // The result is a list of serialized JSONPatch objects (or an error).
-func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Provisioner) ([]byte, error) {
+func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Provisioner, idReqs []IdentityRequest) ([]byte, error) {
 	var ops []PatchOperation
 
 	name := pod.ObjectMeta.GetName()
@@ -452,18 +463,29 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 		name = pod.ObjectMeta.GetGenerateName()
 	}
 
-	annotations := pod.ObjectMeta.GetAnnotations()
-	commonName := annotations[admissionWebhookAnnotationKey]
-	duration := annotations[durationWebhookStatusKey]
-	renewer := mkRenewer(config, name, commonName, namespace)
-	bootstrapper, err := mkBootstrapper(config, name, commonName, duration, namespace, provisioner)
+	// Generate CA fingerprint
+	crt, err := pemutil.ReadCertificate(config.GetRootCAPath())
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "CA fingerprint")
+	}
+	sum := sha256.Sum256(crt.Raw)
+	fingerprint := strings.ToLower(hex.EncodeToString(sum[:]))
+
+	bootstrappers := make([]corev1.Container, len(idReqs))
+	renewers := make([]corev1.Container, len(idReqs))
+
+	for i, ireq := range idReqs {
+		bootstrapper, err := ireq.mkBootstrapper(config, fingerprint, name, namespace, provisioner)
+		if err != nil {
+			return nil, err
+		}
+	  bootstrappers[i] = bootstrapper
+		renewers[i] = ireq.mkRenewer(config, name, namespace)
 	}
 
+	ops = append(ops, addContainers(pod.Spec.InitContainers, bootstrappers, "/spec/initContainers")...)
+	ops = append(ops, addContainers(pod.Spec.Containers, renewers, "/spec/containers")...)
 	ops = append(ops, addCertsVolumeMount(config.CertsVolume.Name, pod.Spec.Containers)...)
-	ops = append(ops, addContainers(pod.Spec.Containers, []corev1.Container{renewer}, "/spec/containers")...)
-	ops = append(ops, addContainers(pod.Spec.InitContainers, []corev1.Container{bootstrapper}, "/spec/initContainers")...)
 	ops = append(ops, addVolumes(pod.Spec.Volumes, []corev1.Volume{config.CertsVolume}, "/spec/volumes")...)
 	ops = append(ops, addAnnotations(pod.Annotations, map[string]string{admissionWebhookStatusKey: "injected"})...)
 
@@ -476,23 +498,16 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 // If the pod requests a certificate with a subject matching a namespace other than its own
 // and restrictToNamespace is true, then shouldMutate will return a validation error
 // that should be returned to the client.
-func shouldMutate(metadata *metav1.ObjectMeta, namespace string, clusterDomain string, restrictToNamespace bool) (bool, error) {
-	annotations := metadata.GetAnnotations()
-	if annotations == nil {
-		annotations = map[string]string{}
-	}
+func shouldMutate(req IdentityRequest, namespace string, clusterDomain string, restrictToNamespace bool) (bool, error) {
+	subject := strings.Trim(req.getSubject(), ".")
 
-	// Only mutate if the object is annotated appropriately (annotation key set) and we haven't
-	// mutated already (status key isn't set).
-	if annotations[admissionWebhookAnnotationKey] == "" || annotations[admissionWebhookStatusKey] == "injected" {
+	if subject == "" {
 		return false, nil
 	}
 
 	if !restrictToNamespace {
 		return true, nil
 	}
-
-	subject := strings.Trim(annotations[admissionWebhookAnnotationKey], ".")
 
 	err := fmt.Errorf("subject \"%s\" matches a namespace other than \"%s\" and is not permitted. This check can be disabled by setting restrictCertificatesToNamespace to false in the autocert-config ConfigMap", subject, namespace)
 
@@ -534,20 +549,47 @@ func mutate(review *v1beta1.AdmissionReview, config *Config, provisioner *ca.Pro
 		"user":         request.UserInfo,
 	})
 
-	mutationAllowed, validationErr := shouldMutate(&pod.ObjectMeta, request.Namespace, config.GetClusterDomain(), config.RestrictCertificatesToNamespace)
+	annotations := pod.ObjectMeta.GetAnnotations()
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
 
-	if validationErr != nil {
-		ctxLog.WithField("error", validationErr).Info("Validation error")
+	// Don't mutate if it's been mutated already
+	if annotations[admissionWebhookStatusKey] == "injected" {
 		return &v1beta1.AdmissionResponse{
-			Allowed: false,
+			Allowed: true,
 			UID:     request.UID,
-			Result: &metav1.Status{
-				Message: validationErr.Error(),
-			},
 		}
 	}
 
-	if !mutationAllowed {
+	tlsReq := TLSIdentityRequest{
+		commonName: annotations[tlsNameAnnotationKey],
+		duration: annotations[tlsDurationAnnotationKey],
+	}
+
+	potentialIdReqs := []IdentityRequest{tlsReq}
+	idReqs := []IdentityRequest{}
+
+	for _, ireq := range potentialIdReqs {
+		mutationAllowed, validationErr := shouldMutate(ireq, request.Namespace, config.GetClusterDomain(), config.RestrictCertificatesToNamespace)
+
+		if validationErr != nil {
+			ctxLog.WithField("error", validationErr).Info("Validation error")
+			return &v1beta1.AdmissionResponse{
+				Allowed: false,
+				UID:     request.UID,
+				Result: &metav1.Status{
+					Message: validationErr.Error(),
+				},
+			}
+		}
+
+		if mutationAllowed {
+			idReqs = append(idReqs, ireq)
+		}
+	}
+
+	if len(idReqs) == 0 {
 		ctxLog.WithField("annotations", pod.Annotations).Info("Skipping mutation")
 		return &v1beta1.AdmissionResponse{
 			Allowed: true,
@@ -555,7 +597,7 @@ func mutate(review *v1beta1.AdmissionReview, config *Config, provisioner *ca.Pro
 		}
 	}
 
-	patchBytes, err := patch(&pod, request.Namespace, config, provisioner)
+	patchBytes, err := patch(&pod, request.Namespace, config, provisioner, idReqs)
 	if err != nil {
 		ctxLog.WithField("error", err).Error("Error generating patch")
 		return &v1beta1.AdmissionResponse{
