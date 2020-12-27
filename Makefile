@@ -156,11 +156,12 @@ DOCKER_OUTPUT=$(OUTPUT_ROOT)docker/
 DOCKER_MAKE=V=$V GOOS_OVERRIDE='GOOS=linux GOARCH=amd64' PREFIX=$(1) make $(1)bin/$(2)
 DOCKER_BUILD=$Q docker build -t smallstep/$(1):latest -f $(2) --build-arg BINPATH=$(DOCKER_OUTPUT)bin/$(1) .
 
-docker: docker-make controller/Dockerfile init/Dockerfile bootstrapper/tls/Dockerfile renewer/tls/Dockerfile
+docker: docker-make controller/Dockerfile init/Dockerfile bootstrapper/tls/Dockerfile renewer/tls/Dockerfile bootstrapper/ssh/Dockerfile
 	$(call DOCKER_BUILD,autocert-controller,controller/Dockerfile)
 	$(call DOCKER_BUILD,autocert-init,init/Dockerfile)
 	$(call DOCKER_BUILD,autocert-bootstrapper,bootstrapper/tls/Dockerfile)
 	$(call DOCKER_BUILD,autocert-renewer,renewer/tls/Dockerfile)
+	$(call DOCKER_BUILD,autocert-ssh-bootstrapper,bootstrapper/ssh/Dockerfile)
 
 docker-make:
 	mkdir -p $(DOCKER_OUTPUT)
