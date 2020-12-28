@@ -1,7 +1,7 @@
 # build stage
 FROM golang:alpine AS build-env
 RUN apk update && apk upgrade && \
-    apk add --no-cache git
+    apk add --no-cache git build-base
 
 WORKDIR $GOPATH/src/github.com/autocert/controller
 COPY go.mod go.sum ./

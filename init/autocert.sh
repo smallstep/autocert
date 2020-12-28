@@ -86,13 +86,14 @@ step ca init \
   --address "$CA_ADDRESS" \
   --provisioner "$CA_DEFAULT_PROVISIONER" \
   --with-ca-url "$CA_URL" \
-  --password-file <(echo "$CA_PASSWORD")
+  --password-file <(echo "$CA_PASSWORD") \
+  --ssh
 
 echo
 echo -e "\e[1mCreating autocert provisioner...\e[0m"
 
 expect <<EOD
-spawn step ca provisioner add autocert --create
+spawn step ca provisioner add autocert --create --ssh
 expect "Please enter a password to encrypt the provisioner private key? \\\\\\[leave empty and we'll generate one\\\\\\]: "
 send "${AUTOCERT_PASSWORD}\n"
 expect eof

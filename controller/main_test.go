@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestGetClusterDomain(t *testing.T) {
@@ -51,11 +50,11 @@ func TestShouldMutate(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			mutationAllowed, validationErr := shouldMutate(&metav1.ObjectMeta{
-				Annotations: map[string]string{
-					admissionWebhookAnnotationKey: testCase.subject,
-				},
-			}, testCase.namespace, "cluster.local", true)
+			req := TLSIdentityRequest{
+				commonName: testCase.subject,
+				duration: "",
+			}
+			mutationAllowed, validationErr := shouldMutate(req, testCase.namespace, "cluster.local", true)
 			if mutationAllowed != testCase.expected {
 				t.Errorf("shouldMutate did not return %t for %s", testCase.expected, testCase.description)
 			}
@@ -67,11 +66,11 @@ func TestShouldMutate(t *testing.T) {
 }
 
 func TestShouldMutateNotRestrictToNamespace(t *testing.T) {
-	mutationAllowed, _ := shouldMutate(&metav1.ObjectMeta{
-		Annotations: map[string]string{
-			admissionWebhookAnnotationKey: "test.default.svc.cluster.local",
-		},
-	}, "kube-system", "cluster.local", false)
+	req := TLSIdentityRequest{
+		commonName: "test.default.svc.cluster.local",
+		duration: "",
+	}
+	mutationAllowed, _ := shouldMutate(req, "kube-system", "cluster.local", false)
 	if mutationAllowed == false {
 		t.Errorf("shouldMutate should return true even with a wrong namespace if restrictToNamespace is false.")
 	}
@@ -101,7 +100,11 @@ func Test_mkRenewer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := mkRenewer(tt.args.config, tt.args.podName, tt.args.commonName, tt.args.namespace); !reflect.DeepEqual(got, tt.want) {
+			req := TLSIdentityRequest{
+				commonName: tt.args.commonName,
+				duration: "",
+			}
+			if got := req.mkRenewer(tt.args.config, tt.args.podName, tt.args.namespace); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("mkRenewer() = %v, want %v", got, tt.want)
 			}
 		})
