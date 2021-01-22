@@ -36,6 +36,7 @@ const (
 	admissionWebhookAnnotationKey = "autocert.step.sm/name"
 	admissionWebhookStatusKey     = "autocert.step.sm/status"
 	durationWebhookStatusKey      = "autocert.step.sm/duration"
+	firstAnnotationKey            = "autocert.step.sm/init-first"
 	volumeMountPath               = "/var/run/autocert.step.sm"
 	tokenSecretKey                = "token"
 	tokenSecretLabel              = "autocert.step.sm/token"
@@ -342,6 +343,13 @@ func mkRenewer(config *Config, podName, commonName, namespace string) corev1.Con
 	return r
 }
 
+func removeInitContainers() (ops PatchOperation) {
+	return PatchOperation{
+		Op:   "remove",
+		Path: "/spec/initContainers",
+	}
+}
+
 func addContainers(existing, new []corev1.Container, path string) (ops []PatchOperation) {
 	if len(existing) == 0 {
 		return []PatchOperation{
@@ -360,6 +368,7 @@ func addContainers(existing, new []corev1.Container, path string) (ops []PatchOp
 			Value: add,
 		})
 	}
+
 	return ops
 }
 
@@ -384,23 +393,29 @@ func addVolumes(existing, new []corev1.Volume, path string) (ops []PatchOperatio
 	return ops
 }
 
-func addCertsVolumeMount(volumeName string, containers []corev1.Container) (ops []PatchOperation) {
+func addCertsVolumeMount(volumeName string, containers []corev1.Container, containerType string, first bool) (ops []PatchOperation) {
 	volumeMount := corev1.VolumeMount{
 		Name:      volumeName,
 		MountPath: volumeMountPath,
 		ReadOnly:  true,
 	}
+
+	add := 0
+	if first {
+		add = 1
+	}
+
 	for i, container := range containers {
 		if len(container.VolumeMounts) == 0 {
 			ops = append(ops, PatchOperation{
 				Op:    "add",
-				Path:  fmt.Sprintf("/spec/containers/%v/volumeMounts", i),
+				Path:  fmt.Sprintf("/spec/%s/%v/volumeMounts", containerType, i+add),
 				Value: []corev1.VolumeMount{volumeMount},
 			})
 		} else {
 			ops = append(ops, PatchOperation{
 				Op:    "add",
-				Path:  fmt.Sprintf("/spec/containers/%v/volumeMounts/-", i),
+				Path:  fmt.Sprintf("/spec/%s/%v/volumeMounts/-", containerType, i+add),
 				Value: volumeMount,
 			})
 		}
@@ -438,7 +453,7 @@ func addAnnotations(existing, new map[string]string) (ops []PatchOperation) {
 
 // patch produces a list of patches to apply to a pod to inject a certificate. In particular,
 // we patch the pod in order to:
-//  - Mount the `certs` volume in existing containers defined in the pod
+//  - Mount the `certs` volume in existing containers and initContainers defined in the pod
 //  - Add the autocert-renewer as a container (a sidecar)
 //  - Add the autocert-bootstrapper as an initContainer
 //  - Add the `certs` volume definition
@@ -454,6 +469,7 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 
 	annotations := pod.ObjectMeta.GetAnnotations()
 	commonName := annotations[admissionWebhookAnnotationKey]
+	first := annotations[firstAnnotationKey] == "true"
 	duration := annotations[durationWebhookStatusKey]
 	renewer := mkRenewer(config, name, commonName, namespace)
 	bootstrapper, err := mkBootstrapper(config, name, commonName, duration, namespace, provisioner)
@@ -461,9 +477,20 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 		return nil, err
 	}
 
-	ops = append(ops, addCertsVolumeMount(config.CertsVolume.Name, pod.Spec.Containers)...)
+	if first {
+		if len(pod.Spec.InitContainers) > 0 {
+			ops = append(ops, removeInitContainers())
+		}
+
+		initContainers := append([]corev1.Container{bootstrapper}, pod.Spec.InitContainers...)
+		ops = append(ops, addContainers([]corev1.Container{}, initContainers, "/spec/initContainers")...)
+	} else {
+		ops = append(ops, addContainers(pod.Spec.InitContainers, []corev1.Container{bootstrapper}, "/spec/initContainers")...)
+	}
+
+	ops = append(ops, addCertsVolumeMount(config.CertsVolume.Name, pod.Spec.Containers, "containers", false)...)
+	ops = append(ops, addCertsVolumeMount(config.CertsVolume.Name, pod.Spec.InitContainers, "initContainers", first)...)
 	ops = append(ops, addContainers(pod.Spec.Containers, []corev1.Container{renewer}, "/spec/containers")...)
-	ops = append(ops, addContainers(pod.Spec.InitContainers, []corev1.Container{bootstrapper}, "/spec/initContainers")...)
 	ops = append(ops, addVolumes(pod.Spec.Volumes, []corev1.Volume{config.CertsVolume}, "/spec/volumes")...)
 	ops = append(ops, addAnnotations(pod.Annotations, map[string]string{admissionWebhookStatusKey: "injected"})...)
 
