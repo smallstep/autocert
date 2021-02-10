@@ -37,6 +37,7 @@ const (
 	admissionWebhookStatusKey     = "autocert.step.sm/status"
 	durationWebhookStatusKey      = "autocert.step.sm/duration"
 	firstAnnotationKey            = "autocert.step.sm/init-first"
+	sansAnnotationKey             = "autocert.step.sm/sans"
 	volumeMountPath               = "/var/run/autocert.step.sm"
 	tokenSecretKey                = "token"
 	tokenSecretLabel              = "autocert.step.sm/token"
@@ -247,10 +248,10 @@ func createTokenSecret(prefix, namespace, token string) (string, error) {
 // mkBootstrapper generates a bootstrap container based on the template defined in Config. It
 // generates a new bootstrap token and mounts it, along with other required configuration, as
 // environment variables in the returned bootstrap container.
-func mkBootstrapper(config *Config, podName, commonName, duration, namespace string, provisioner *ca.Provisioner) (corev1.Container, error) {
+func mkBootstrapper(config *Config, podName, commonName, duration, namespace string, sans []string, provisioner *ca.Provisioner) (corev1.Container, error) {
 	b := config.Bootstrapper
 
-	token, err := provisioner.Token(commonName)
+	token, err := provisioner.Token(commonName, sans...)
 	if err != nil {
 		return b, errors.Wrap(err, "token generation")
 	}
@@ -470,9 +471,10 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 	annotations := pod.ObjectMeta.GetAnnotations()
 	commonName := annotations[admissionWebhookAnnotationKey]
 	first := annotations[firstAnnotationKey] == "true"
+	sans := strings.Split(annotations[sansAnnotationKey], ",")
 	duration := annotations[durationWebhookStatusKey]
 	renewer := mkRenewer(config, name, commonName, namespace)
-	bootstrapper, err := mkBootstrapper(config, name, commonName, duration, namespace, provisioner)
+	bootstrapper, err := mkBootstrapper(config, name, commonName, duration, namespace, sans, provisioner)
 	if err != nil {
 		return nil, err
 	}
