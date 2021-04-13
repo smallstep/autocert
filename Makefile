@@ -11,7 +11,7 @@ OUTPUT_ROOT=output/
 # Set shell to bash for `echo -e`
 SHELL := /bin/bash
 
-all: build test lint
+all: lint test build
 
 .PHONY: all
 
