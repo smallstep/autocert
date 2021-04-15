@@ -149,7 +149,7 @@ In our new container we should find a certificate, private key, and root
 certificate mounted at `/var/run/autocert.step.sm`:
 
 ```bash
-$ export HELLO_MTLS=$(kubectl get pods -l app=hello-mtls -o jsonpath={$.items[0].metadata.name})
+$ export HELLO_MTLS=$(kubectl get pods -l app=hello-mtls -o jsonpath='{$.items[0].metadata.name}')
 $ kubectl exec -it $HELLO_MTLS -c hello-mtls -- ls /var/run/autocert.step.sm
 root.crt  site.crt  site.key
 ```
@@ -184,7 +184,7 @@ The container will have also the certificates and key, but the duration will be
 valid for one hour, and it will also autorenew:
 
 ```bash
-$ export HELLO_MTLS_1H=$(kubectl get pods -l app=hello-mtls-1h -o jsonpath={$.items[0].metadata.name})
+$ export HELLO_MTLS_1H=$(kubectl get pods -l app=hello-mtls-1h -o jsonpath='{$.items[0].metadata.name}')
 $ kubectl exec -it $HELLO_MTLS_1H -c hello-mtls -- ls /var/run/autocert.step.sm
 root.crt  site.crt  site.key
 $ kubectl exec -it $HELLO_MTLS_1H -c hello-mtls -- cat /var/run/autocert.step.sm/site.crt | step certificate inspect --short -
@@ -246,7 +246,7 @@ EOF
 Once deployed we should start seeing the client log responses from the server [saying hello](examples/hello-mtls/go/server/server.go#L71-L72):
 
 ```
-$ export HELLO_MTLS_CLIENT=$(kubectl get pods -l app=hello-mtls-client -o jsonpath={$.items[0].metadata.name})
+$ export HELLO_MTLS_CLIENT=$(kubectl get pods -l app=hello-mtls-client -o jsonpath='{$.items[0].metadata.name}')
 $ kubectl logs $HELLO_MTLS_CLIENT -c hello-mtls-client
 Thu Feb  7 23:35:23 UTC 2019: Hello, hello-mtls-client.default.pod.cluster.local!
 Thu Feb  7 23:35:28 UTC 2019: Hello, hello-mtls-client.default.pod.cluster.local!
@@ -286,7 +286,7 @@ In another window we'll use `step` to grab the root certificate, generate a key 
 > To follow along you'll need to [`install step`](https://github.com/smallstep/cli#installing) if you haven't already. You'll also need your admin password and CA fingerprint, which were output during installation (see [here](RUNBOOK.md#recover-admin-and-ca-password) and [here](RUNBOOK.md#recompute-root-certificate-fingerprint) if you already lost them :).
 
 ```bash
-$ export CA_POD=$(kubectl -n step get pods -l app=ca -o jsonpath={$.items[0].metadata.name})
+$ export CA_POD=$(kubectl -n step get pods -l app=ca -o jsonpath='{$.items[0].metadata.name}')
 $ step ca root root.crt --ca-url https://127.0.0.1:4443 --fingerprint <fingerprint>
 $ step ca certificate mike mike.crt mike.key --ca-url https://127.0.0.1:4443 --root root.crt
 ✔ Key ID: H4vH5VfvaMro0yrk-UIkkeCoPFqEfjF6vg0GHFdhVyM (admin)
