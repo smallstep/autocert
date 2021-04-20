@@ -472,7 +472,7 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 	commonName := annotations[admissionWebhookAnnotationKey]
 	first := annotations[firstAnnotationKey] == "true"
 	sans := strings.Split(annotations[sansAnnotationKey], ",")
-	if len(sans) == 0 {
+	if len(annotations[sansAnnotationKey]) == 0 {
 		sans = []string{commonName}
 	}
 	duration := annotations[durationWebhookStatusKey]
