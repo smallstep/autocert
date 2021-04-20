@@ -11,7 +11,7 @@ OUTPUT_ROOT=output/
 # Set shell to bash for `echo -e`
 SHELL := /bin/bash
 
-all: lint test build
+all: build lint test
 
 .PHONY: all
 
@@ -108,7 +108,7 @@ fmt:
 	$Q gofmt -l -w $(SRC)
 
 lint:
-	$Q LOG_LEVEL=error golangci-lint run
+	$Q LOG_LEVEL=error golangci-lint --timeout=30m run
 
 .PHONY: lint fmt
 
