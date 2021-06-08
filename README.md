@@ -2,7 +2,7 @@
 
 # Autocert
 [![GitHub release](https://img.shields.io/github/release/smallstep/autocert.svg)](https://github.com/smallstep/autocert/releases)
-[![Join the chat at https://gitter.im/smallstep/community](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/smallstep/community)
+[![Join the chat at https://bit.ly/stepdiscord](https://badges.gitter.im/Join%20Chat.svg)](https://bit.ly/stepdiscord)
 [![CA Image](https://images.microbadger.com/badges/image/smallstep/step-ca.svg)](https://microbadger.com/images/smallstep/step-ca)
 [![Go Report Card](https://goreportcard.com/badge/github.com/smallstep/autocert)](https://goreportcard.com/report/github.com/smallstep/autocert)
 
