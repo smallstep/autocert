@@ -6,7 +6,7 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/smallstep/autocert.svg?style=social)](https://github.com/smallstep/autocert/stargazers)
 [![Twitter followers](https://img.shields.io/twitter/follow/smallsteplabs.svg?label=Follow&style=social)](https://twitter.com/intent/follow?screen_name=smallsteplabs)
-[![Join the chat at Discord](https://smallstep.com/images/icons/discord.svg)](https://bit.ly/step-discord)
+[![Join the chat at Discord](https://img.shields.io/badge/discord--green?logo=discord&style=social)](https://bit.ly/step-discord)
 
 **Autocert** is a kubernetes add-on that automatically injects TLS/HTTPS certificates into your containers.
 
