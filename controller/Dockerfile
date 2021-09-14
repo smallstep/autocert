@@ -9,7 +9,7 @@ COPY controller/client.go controller/main.go ./
 RUN go build -o /server .
 
 # final stage
-FROM smallstep/step-cli:0.15.14
+FROM smallstep/step-cli:0.17.2
 ENV STEPPATH="/home/step"
 ENV PWDPATH="/home/step/password/password"
 ENV CONFIGPATH="/home/step/autocert/config.yaml"
