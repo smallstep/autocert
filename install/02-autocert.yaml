@@ -27,7 +27,7 @@ data:
     certLifetime: 24h
     renewer:
       name: autocert-renewer
-      image: cr.step.sm/smallstep/autocert-renewer:0.14.0
+      image: cr.step.sm/smallstep/autocert-renewer:0.15.1
       resources: {requests: {cpu: 10m, memory: 20Mi}}
       imagePullPolicy: IfNotPresent
       volumeMounts:
@@ -35,7 +35,7 @@ data:
         mountPath: /var/run/autocert.step.sm
     bootstrapper:
       name: autocert-bootstrapper
-      image: cr.step.sm/smallstep/autocert-bootstrapper:0.14.0
+      image: cr.step.sm/smallstep/autocert-bootstrapper:0.15.1
       resources: {requests: {cpu: 10m, memory: 20Mi}}
       imagePullPolicy: IfNotPresent
       volumeMounts:
@@ -61,7 +61,7 @@ spec:
     spec:
       containers:
       - name: autocert
-        image: cr.step.sm/smallstep/autocert-controller:0.14.0
+        image: cr.step.sm/smallstep/autocert-controller:0.15.1
         resources: {requests: {cpu: 100m, memory: 20Mi}}
         env:
         - name: PROVISIONER_NAME
