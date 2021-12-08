@@ -37,6 +37,7 @@ const (
 	admissionWebhookStatusKey     = "autocert.step.sm/status"
 	durationWebhookStatusKey      = "autocert.step.sm/duration"
 	firstAnnotationKey            = "autocert.step.sm/init-first"
+	bootstrapperOnlyAnnotationKey = "autocert.step.sm/bootstrapper-only"
 	sansAnnotationKey             = "autocert.step.sm/sans"
 	volumeMountPath               = "/var/run/autocert.step.sm"
 	tokenSecretKey                = "token"
@@ -475,6 +476,7 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 	if len(annotations[sansAnnotationKey]) == 0 {
 		sans = []string{commonName}
 	}
+	bootstrapperOnly := annotations[bootstrapperOnlyAnnotationKey] == "true"
 	duration := annotations[durationWebhookStatusKey]
 	renewer := mkRenewer(config, name, commonName, namespace)
 	bootstrapper, err := mkBootstrapper(config, name, commonName, duration, namespace, sans, provisioner)
@@ -495,7 +497,9 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 
 	ops = append(ops, addCertsVolumeMount(config.CertsVolume.Name, pod.Spec.Containers, "containers", false)...)
 	ops = append(ops, addCertsVolumeMount(config.CertsVolume.Name, pod.Spec.InitContainers, "initContainers", first)...)
-	ops = append(ops, addContainers(pod.Spec.Containers, []corev1.Container{renewer}, "/spec/containers")...)
+	if !bootstrapperOnly {
+		ops = append(ops, addContainers(pod.Spec.Containers, []corev1.Container{renewer}, "/spec/containers")...)
+	}
 	ops = append(ops, addVolumes(pod.Spec.Volumes, []corev1.Volume{config.CertsVolume}, "/spec/volumes")...)
 	ops = append(ops, addAnnotations(pod.Annotations, map[string]string{admissionWebhookStatusKey: "injected"})...)
 
