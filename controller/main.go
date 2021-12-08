@@ -471,12 +471,12 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 
 	annotations := pod.ObjectMeta.GetAnnotations()
 	commonName := annotations[admissionWebhookAnnotationKey]
-	first := annotations[firstAnnotationKey] == "true"
+	first := strings.EqualFold(annotations[firstAnnotationKey], "true")
 	sans := strings.Split(annotations[sansAnnotationKey], ",")
 	if len(annotations[sansAnnotationKey]) == 0 {
 		sans = []string{commonName}
 	}
-	bootstrapperOnly := annotations[bootstrapperOnlyAnnotationKey] == "true"
+	bootstrapperOnly := strings.EqualFold(annotations[bootstrapperOnlyAnnotationKey], "true")
 	duration := annotations[durationWebhookStatusKey]
 	renewer := mkRenewer(config, name, commonName, namespace)
 	bootstrapper, err := mkBootstrapper(config, name, commonName, duration, namespace, sans, provisioner)
