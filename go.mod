@@ -8,7 +8,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.7.0
-	github.com/smallstep/certificates v0.18.0
+	github.com/smallstep/certificates v0.18.1-0.20211215202236-ab44fbfb3f8d
 	github.com/smallstep/cli v0.18.0
 	golang.org/x/net v0.0.0-20210913180222-943fd674d43e
 	google.golang.org/grpc v1.39.0
