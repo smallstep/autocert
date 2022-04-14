@@ -63,7 +63,7 @@ Add provisioning credentials for use by `autocert`. You'll be prompted for a pas
 $ step ca provisioner add autocert --create
 ```
 
-For older versions of `step`:
+For older versions of [`step`](https://github.com/smallstep/cli/releases):
 
 * Run `step ca init` and follow prompts
 * Edit `$(step path)/config/ca.json` and change base paths to `/home/step`
