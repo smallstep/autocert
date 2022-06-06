@@ -149,6 +149,7 @@ webhooks:
         apiGroups: [""]
         apiVersions: ["v1"]
         resources: ["pods"]
+    failurePolicy: Ignore
     namespaceSelector:
       matchLabels:
         autocert.step.sm: enabled
