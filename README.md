@@ -175,8 +175,8 @@ spec:
       annotations:
         autocert.step.sm/name: hello-mtls-1h.default.svc.cluster.local
         autocert.step.sm/duration: 1h
-	autocert.step.sm/owner: "999:999"
-	autocert.step.sm/mode: "0600"
+        autocert.step.sm/owner: "999:999"
+        autocert.step.sm/mode: "0600"
       labels: {app: hello-mtls-1h}
     spec:
       containers:

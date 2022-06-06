@@ -10,12 +10,12 @@ fi
 
 step ca root $STEP_ROOT
 
-if [ "$OWNER" ]
+if [ -n "$OWNER" ]
 then
     chown "$OWNER" $CRT $KEY $STEP_ROOT
 fi
 
-if [ "$MODE" ]
+if [ -n "$MODE" ]
 then
     chmod "$MODE" $CRT $KEY $STEP_ROOT
 else
