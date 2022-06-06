@@ -129,13 +129,15 @@ kubectl -n step rollout status deployment/autocert
 CA_BUNDLE=$(cat $(step path)/certs/root_ca.crt | base64 | tr -d '\n')
 
 cat <<EOF | kubectl apply -f -
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: autocert-webhook-config
   labels: {app: autocert}
 webhooks:
   - name: autocert.step.sm
+    sideEffects: None
+    admissionReviewVersions: ["v1beta1"]
     clientConfig:
       service:
         name: autocert
