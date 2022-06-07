@@ -121,6 +121,7 @@ limits defined by the used provisioner, the defaults are 5m and 24h.
 
 By default the certificate, key and root will be owned by root and world-readable (0644).
 Use the `autocert.step.sm/owner` and `autocert.step.sm/mode` annotations to set the owner and permissions of the files.
+The owner annotation requires user and group IDs rather than names because the image used by the containers that create and renew the certificates do not have the same user list as the main application containers.
 
 
 Let's deploy a [simple mTLS server](examples/hello-mtls/go/server/server.go)
