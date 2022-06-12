@@ -83,13 +83,14 @@ func Test_mkRenewer(t *testing.T) {
 		podName    string
 		commonName string
 		namespace  string
+		renewalVolume string
 	}
 	tests := []struct {
 		name string
 		args args
 		want corev1.Container
 	}{
-		{"ok", args{&Config{CaURL: "caURL", ClusterDomain: "clusterDomain"}, "podName", "commonName", "namespace"}, corev1.Container{
+		{"mkRenewer-noVolume", args{&Config{CaURL: "caURL", ClusterDomain: "clusterDomain"}, "podName", "commonName", "namespace", ""}, corev1.Container{
 			Env: []corev1.EnvVar{
 				{Name: "STEP_CA_URL", Value: "caURL"},
 				{Name: "COMMON_NAME", Value: "commonName"},
@@ -98,10 +99,21 @@ func Test_mkRenewer(t *testing.T) {
 				{Name: "CLUSTER_DOMAIN", Value: "clusterDomain"},
 			},
 		}},
-	}
+		{"mkRenewer-Volume", args{&Config{CaURL: "caURL", ClusterDomain: "clusterDomain"}, "podName", "commonName", "namespace", "renewerVolume"}, corev1.Container{
+			Env: []corev1.EnvVar{
+				{Name: "STEP_CA_URL", Value: "caURL"},
+				{Name: "COMMON_NAME", Value: "commonName"},
+				{Name: "POD_NAME", Value: "podName"},
+				{Name: "NAMESPACE", Value: "namespace"},
+				{Name: "CLUSTER_DOMAIN", Value: "clusterDomain"},
+			},
+			VolumeMounts: []corev1.VolumeMount{
+				{Name: "renewerVolume", MountPath: "/renewer", ReadOnly: true},
+			},
+		}},	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := mkRenewer(tt.args.config, tt.args.podName, tt.args.commonName, tt.args.namespace); !reflect.DeepEqual(got, tt.want) {
+			if got := mkRenewer(tt.args.config, tt.args.podName, tt.args.commonName, tt.args.namespace, tt.args.renewalVolume); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("mkRenewer() = %v, want %v", got, tt.want)
 			}
 		})
