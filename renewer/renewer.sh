@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/sh -x
 
 SCRIPT_PATH=/renewer/renew.sh
 
-if [ -e "SCRIPT_PATH" ]
+if [ -e "$SCRIPT_PATH" ]
 then
         CMD="--exec=$SCRIPT_PATH"
 fi
