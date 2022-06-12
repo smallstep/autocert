@@ -41,7 +41,7 @@ const (
 	sansAnnotationKey             = "autocert.step.sm/sans"
 	ownerAnnotationKey            = "autocert.step.sm/owner"
 	modeAnnotationKey             = "autocert.step.sm/mode"
-	renewerVolumeAnnotationKey    = "autocert.step.sm/renewer-script"
+	renewerVolumeAnnotationKey    = "autocert.step.sm/renewerVolume"
 	volumeMountPath               = "/var/run/autocert.step.sm"
 	tokenSecretKey                = "token"
 	tokenSecretLabel              = "autocert.step.sm/token"
@@ -354,7 +354,7 @@ func mkRenewer(config *Config, podName, commonName, namespace, renewerVolume str
 		Value: config.ClusterDomain,
 	})
 
-	if (renewerVolume != "") {
+	if renewerVolume != "" {
 		r.VolumeMounts = append(r.VolumeMounts, corev1.VolumeMount{
 			Name:      renewerVolume,
 			MountPath: "/renewer",
