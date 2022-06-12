@@ -119,6 +119,11 @@ or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". Tak
 into account that the container will crash if the duration is not between the
 limits defined by the used provisioner, the defaults are 5m and 24h.
 
+By default the certificate, key and root will be owned by root and world-readable (0644).
+Use the `autocert.step.sm/owner` and `autocert.step.sm/mode` annotations to set the owner and permissions of the files.
+The owner annotation requires user and group IDs rather than names because the images used by the containers that create and renew the certificates do not have the same user list as the main application containers.
+
+
 Let's deploy a [simple mTLS server](examples/hello-mtls/go/server/server.go)
 named `hello-mtls.default.svc.cluster.local`:
 
@@ -156,7 +161,7 @@ root.crt  site.crt  site.key
 We're done. Our container has a certificate, issued by our CA, which `autocert`
 will automatically renew.
 
-Now let's deploy another server with a `autocert.step.sm/duration`:
+Now let's deploy another server with a `autocert.step.sm/duration`, `autocert.step.sm/owner` and `autocert.step.sm/mode`:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -171,6 +176,8 @@ spec:
       annotations:
         autocert.step.sm/name: hello-mtls-1h.default.svc.cluster.local
         autocert.step.sm/duration: 1h
+        autocert.step.sm/owner: "999:999"
+        autocert.step.sm/mode: "0600"
       labels: {app: hello-mtls-1h}
     spec:
       containers:
@@ -179,13 +186,14 @@ spec:
 EOF
 ```
 
-The container will have also the certificates and key, but the duration will be
-valid for one hour, and it will also autorenew:
+The container will have the certificates and key owned by user/group 999 with permission to read/write restricted to the owner, and the certificate duration will be valid for one hour and will be autorenewed:
 
 ```bash
 $ export HELLO_MTLS_1H=$(kubectl get pods -l app=hello-mtls-1h -o jsonpath='{$.items[0].metadata.name}')
-$ kubectl exec -it $HELLO_MTLS_1H -c hello-mtls -- ls /var/run/autocert.step.sm
-root.crt  site.crt  site.key
+$ kubectl exec -it $HELLO_MTLS_1H -c hello-mtls -- ls -ln /var/run/autocert.step.sm
+-rw------- 1 999 999  623 Jun  6 21:17 root.crt
+-rw------- 1 999 999 1470 Jun  6 21:37 site.crt
+-rw------- 1 999 999  227 Jun  6 21:17 site.key
 $ kubectl exec -it $HELLO_MTLS_1H -c hello-mtls -- cat /var/run/autocert.step.sm/site.crt | step certificate inspect --short -
 X.509v3 TLS Certificate (ECDSA P-256) [Serial: 3182...1140]
   Subject:     hello-mtls-1h.default.svc.cluster.local

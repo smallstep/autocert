@@ -7,7 +7,18 @@ then
 else
     step ca certificate --not-after $DURATION $COMMON_NAME $CRT $KEY
 fi
-chmod 644 $CRT $KEY
 
 step ca root $STEP_ROOT
-chmod 644 $STEP_ROOT
+
+if [ -n "$OWNER" ]
+then
+    chown "$OWNER" $CRT $KEY $STEP_ROOT
+fi
+
+if [ -n "$MODE" ]
+then
+    chmod "$MODE" $CRT $KEY $STEP_ROOT
+else
+    chmod 644 $CRT $KEY $STEP_ROOT
+fi
+
