@@ -1,9 +1,10 @@
 #!/bin/sh
 
-if [ -e /renew/renew.sh ]
+SCRIPT_PATH=/renewer/renew.sh
+
+if [ -e "SCRIPT_PATH" ]
 then
-        CMD="--exec=/renew/renew.sh"
+        CMD="--exec=$SCRIPT_PATH"
 fi
 
 /bin/bash -xc "step ca renew $CMD --daemon $CRT $KEY"
-
