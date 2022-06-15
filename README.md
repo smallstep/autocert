@@ -435,34 +435,21 @@ https://golang.org/pkg/crypto/
 
 ## Building
 
-This project is based on four docker containers. They use [multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/) so all you need in order to build them is `docker`.
+This project is based on four container images:
+- `autocert-controller` (the admission webhook)
+- `autocert-bootstrapper` (the init container that generates a key pair and exchanges a bootstrap token for a certificate)
+- `autocert-renewer` (the sidecar that renews certificates)
+- `autocert-init` (the install script)
 
-Building `autocert-controller` (the admission webhook):
+They use [multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/) so all you need in order to build them is `docker`.
 
-```
-cd controller
-docker build -t smallstep/autocert-controller:latest .
-```
-
-Building `autocert-bootstrapper` (the init container that generates a key pair and exchanges a bootstrap token for a certificate):
-
-```
-cd bootstrapper
-docker build -t smallstep/autocert-bootstrapper:latest .
-```
-
-Building `autocert-renewer` (the sidecar that renews certificates):
+To build all of the images, run:
 
 ```
-cd renewer
-docker build -t smallstep/autocert-renewer:latest .
-```
-
-Building `autocert-init` (the install script):
-
-```
-cd init
-docker build -t smallstep/autocert-init:latest .
+docker build -t smallstep/autocert-controller:latest -f controller/Dockerfile .
+docker build -t smallstep/autocert-bootstrapper:latest -f bootstrapper/Dockerfile .
+docker build -t smallstep/autocert-renewer:latest -f renewer/Dockerfile .
+docker build -t smallstep/autocert-init:latest -f init/Dockerfile .
 ```
 
 If you build your own containers you'll probably need to [install manually](INSTALL.md). You'll also need to adjust which images are deployed in the [deployment yaml](install/02-autocert.yaml).
