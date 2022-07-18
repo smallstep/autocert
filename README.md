@@ -44,6 +44,12 @@ Features include:
 
  Because `autocert` is built on [`step certificates`](https://github.com/smallstep/certificates) you can easily [extend access](#connecting-from-outside-the-cluster) to developers, endpoints, and workloads running outside your cluster, too.
 
+## Tutorial & Demo
+
+<a href="https://www.youtube.com/watch?v=NhHkfvSuKiM"><img width="800" alt="smallstep-cm-autocert-demo-keyframe" src="https://user-images.githubusercontent.com/50809/179625695-347bdb75-0376-443d-be21-ce30e55cacee.png"></a>
+
+In [this tutorial video](https://www.youtube.com/watch?v=NhHkfvSuKiM), Smallstep Software Engineer Andrew Reed shows how to use autocert alongside Smallstep [Certificate Manager](https://smallstep.com/certificate-manager/) hosted CA.
+
 ## Getting Started
 
 ### Prerequisites
