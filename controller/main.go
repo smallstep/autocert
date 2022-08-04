@@ -41,6 +41,7 @@ const (
 	sansAnnotationKey             = "autocert.step.sm/sans"
 	ownerAnnotationKey            = "autocert.step.sm/owner"
 	modeAnnotationKey             = "autocert.step.sm/mode"
+	renewerVolumeAnnotationKey    = "autocert.step.sm/renewerVolume"
 	volumeMountPath               = "/var/run/autocert.step.sm"
 	tokenSecretKey                = "token"
 	tokenSecretLabel              = "autocert.step.sm/token"
@@ -330,7 +331,7 @@ func mkBootstrapper(config *Config, podName, commonName, duration, owner, mode, 
 }
 
 // mkRenewer generates a new renewer based on the template provided in Config.
-func mkRenewer(config *Config, podName, commonName, namespace string) corev1.Container {
+func mkRenewer(config *Config, podName, commonName, namespace, renewerVolume string) corev1.Container {
 	r := config.Renewer
 	r.Env = append(r.Env, corev1.EnvVar{
 		Name:  "STEP_CA_URL",
@@ -352,6 +353,15 @@ func mkRenewer(config *Config, podName, commonName, namespace string) corev1.Con
 		Name:  "CLUSTER_DOMAIN",
 		Value: config.ClusterDomain,
 	})
+
+	if renewerVolume != "" {
+		r.VolumeMounts = append(r.VolumeMounts, corev1.VolumeMount{
+			Name:      renewerVolume,
+			MountPath: "/renewer",
+			ReadOnly:  true,
+		})
+	}
+
 	return r
 }
 
@@ -490,7 +500,8 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 	duration := annotations[durationWebhookStatusKey]
 	owner := annotations[ownerAnnotationKey]
 	mode := annotations[modeAnnotationKey]
-	renewer := mkRenewer(config, name, commonName, namespace)
+	renewerVolume := annotations[renewerVolumeAnnotationKey]
+	renewer := mkRenewer(config, name, commonName, namespace, renewerVolume)
 	bootstrapper, err := mkBootstrapper(config, name, commonName, duration, owner, mode, namespace, sans, provisioner)
 	if err != nil {
 		return nil, err

@@ -129,6 +129,11 @@ By default the certificate, key and root will be owned by root and world-readabl
 Use the `autocert.step.sm/owner` and `autocert.step.sm/mode` annotations to set the owner and permissions of the files.
 The owner annotation requires user and group IDs rather than names because the images used by the containers that create and renew the certificates do not have the same user list as the main application containers.
 
+To run a custom script at certificate renewal time, add an
+`autocert.step.sm/renewalVolume` annotation, with the value the name of a volume
+to mount in the renewal container. The volume should contain an executable
+called `renew.sh`, which will be run by `step ca renew --exec`.
+
 
 Let's deploy a [simple mTLS server](examples/hello-mtls/go/server/server.go)
 named `hello-mtls.default.svc.cluster.local`:
@@ -167,7 +172,8 @@ root.crt  site.crt  site.key
 We're done. Our container has a certificate, issued by our CA, which `autocert`
 will automatically renew.
 
-Now let's deploy another server with a `autocert.step.sm/duration`, `autocert.step.sm/owner` and `autocert.step.sm/mode`:
+Now let's deploy another server with a `autocert.step.sm/duration`, `autocert.step.sm/owner`,
+`autocert.step.sm/mode` and `autocert.step.sm/renewalVolume`:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -184,6 +190,7 @@ spec:
         autocert.step.sm/duration: 1h
         autocert.step.sm/owner: "999:999"
         autocert.step.sm/mode: "0600"
+        autocert.step.sm/renewalVolume: "renewal"
       labels: {app: hello-mtls-1h}
     spec:
       containers:
@@ -192,7 +199,40 @@ spec:
 EOF
 ```
 
-The container will have the certificates and key owned by user/group 999 with permission to read/write restricted to the owner, and the certificate duration will be valid for one hour and will be autorenewed:
+Create a config map with a simple post-renewal script:
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: renewal-script
+data:
+  renew.sh: |
+    #!/bin/sh
+
+    echo "New certificate at $CRT"
+EOF
+```
+
+And update the pod specification to include the volume:
+
+```yaml
+    volumes:
+      - name: renewal
+        configMap:
+          name: renewal-script
+          defaultMode: "0777"
+```
+
+You may also need to add `shareProcessNamespace: true` to your pod specification
+so the renewal script can see processes in other contianers (e.g., so the script
+can restart nginx).
+
+The container will have the certificates and key owned by user/group 999 with
+permission to read/write restricted to the owner, and the certificate duration
+will be valid for one hour and will be autorenewed. After the certificate and
+key have been renewed, the renewal script will run.
 
 ```bash
 $ export HELLO_MTLS_1H=$(kubectl get pods -l app=hello-mtls-1h -o jsonpath='{$.items[0].metadata.name}')
@@ -207,6 +247,9 @@ X.509v3 TLS Certificate (ECDSA P-256) [Serial: 3182...1140]
   Provisioner: autocert [ID: A1lX...ty1Q]
   Valid from:  2020-04-30T01:58:17Z
           to:  2020-04-30T02:58:17Z
+$ kubectl logs --follow $HELLO_MTLS-1H --container autocert-renewal
+INFO: 2022/06/12 10:20:58 hello-mtls-1h.default.svc.cluster.local certificate renewed, next in 40m24s
+Hello world!
 ```
 
 Durations are specially useful if the `step-ca` provisioner is configured with a
