@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -13,6 +12,7 @@ import (
 )
 
 const (
+	//nolint:gosec // path to file
 	serviceAccountToken  = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 	serviceAccountCACert = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 )
@@ -36,7 +36,7 @@ func (kc *k8sClient) GetRequest(url string) (*http.Request, error) {
 	if !strings.HasPrefix(url, kc.host) {
 		url = fmt.Sprintf("%s/%s", kc.host, url)
 	}
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (kc *k8sClient) GetRequest(url string) (*http.Request, error) {
 	return req, nil
 }
 
-func (kc *k8sClient) PostRequest(url string, body string, contentType string) (*http.Request, error) {
+func (kc *k8sClient) PostRequest(url, body, contentType string) (*http.Request, error) {
 	if !strings.HasPrefix(url, kc.host) {
 		url = fmt.Sprintf("%s/%s", kc.host, url)
 	}
@@ -67,7 +67,7 @@ func (kc *k8sClient) DeleteRequest(url string) (*http.Request, error) {
 	if !strings.HasPrefix(url, kc.host) {
 		url = fmt.Sprintf("%s/%s", kc.host, url)
 	}
-	req, err := http.NewRequest("DELETE", url, nil)
+	req, err := http.NewRequest("DELETE", url, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -88,21 +88,21 @@ func (kc *k8sClient) Host() string {
 // NewInClusterK8sClient creates K8sClient if it is inside Kubernetes
 func NewInClusterK8sClient() (Client, error) {
 	host, port := os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT")
-	if len(host) == 0 || len(port) == 0 {
+	if host == "" || port == "" {
 		return nil, fmt.Errorf("unable to load in-cluster configuration, KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT must be defined")
 	}
-	token, err := ioutil.ReadFile(serviceAccountToken)
+	token, err := os.ReadFile(serviceAccountToken)
 	if err != nil {
 		return nil, err
 	}
-	ca, err := ioutil.ReadFile(serviceAccountCACert)
+	ca, err := os.ReadFile(serviceAccountCACert)
 	if err != nil {
 		return nil, err
 	}
 	certPool := x509.NewCertPool()
 	certPool.AppendCertsFromPEM(ca)
 	transport := &http.Transport{TLSClientConfig: &tls.Config{
-		MinVersion: tls.VersionTLS10,
+		MinVersion: tls.VersionTLS12,
 		RootCAs:    certPool,
 	}}
 	httpClient := &http.Client{Transport: transport, Timeout: time.Nanosecond * 0}

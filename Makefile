@@ -20,10 +20,8 @@ all: build lint test
 #########################################
 
 bootstra%:
-	# Using a released version of golangci-lint to take into account custom replacements in their go.mod
-	$Q curl -sSfL https://raw.githubusercontent.com/smallstep/cli/master/make/golangci-install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.39.0
-
-.PHONY: bootstra%
+	$Q curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.49
+	$Q go install golang.org/x/vuln/cmd/govulncheck@latest
 
 #################################################
 # Determine the type of `push` and `version`
@@ -105,12 +103,14 @@ vtest:
 #########################################
 
 fmt:
-	$Q gofmt -l -w $(SRC)
+	$Q goimports -local github.com/golangci/golangci-lint -l -w $(SRC)
 
+lint: SHELL:=/bin/bash
 lint:
-	$Q LOG_LEVEL=error golangci-lint --timeout=30m run
+	$Q LOG_LEVEL=error golangci-lint run --config <(curl -s https://raw.githubusercontent.com/smallstep/workflows/master/.golangci.yml) --timeout=30m
+	$Q govulncheck ./...
 
-.PHONY: lint fmt
+.PHONY: fmt lint
 
 #########################################
 # Install
