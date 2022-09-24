@@ -20,8 +20,10 @@ all: build lint test
 #########################################
 
 bootstra%:
-	$Q curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.49.0
+	$Q curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin latest
 	$Q go install golang.org/x/vuln/cmd/govulncheck@latest
+	$Q go install gotest.tools/gotestsum@latest
+
 
 #################################################
 # Determine the type of `push` and `version`
@@ -85,7 +87,7 @@ generate:
 # Test
 #########################################
 test:
-	$Q $(GOFLAGS) go test -short -coverprofile=coverage.out ./...
+	$Q $(GOFLAGS) gotestsum -- -coverprofile=coverage.out -short -covermode=atomic ./...
 
 vtest:
 	$(Q)for d in $$(go list ./... | grep -v vendor); do \
@@ -103,7 +105,7 @@ vtest:
 #########################################
 
 fmt:
-	$Q goimports -local github.com/golangci/golangci-lint -l -w $(SRC)
+	$Q goimports -l -w $(SRC)
 
 lint: SHELL:=/bin/bash
 lint:
