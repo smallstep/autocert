@@ -302,8 +302,8 @@ In another window we'll use `step` to grab the root certificate, generate a key 
 $ export CA_POD=$(kubectl -n step get pods -l app=ca -o jsonpath='{$.items[0].metadata.name}')
 $ step ca root root.crt --ca-url https://127.0.0.1:4443 --fingerprint <fingerprint>
 $ step ca certificate mike mike.crt mike.key --ca-url https://127.0.0.1:4443 --root root.crt
-✔ Key ID: H4vH5VfvaMro0yrk-UIkkeCoPFqEfjF6vg0GHFdhVyM (admin) /*gitleaks:allow*/
-✔ Please enter the password to decrypt the provisioner key: 0QOC9xcq56R1aEyLHPzBqN18Z3WfGZ01 //gitleaks:allow
+✔ Key ID: H4vH5VfvaMro0yrk-UIkkeCoPFqEfjF6vg0GHFdhVyM (admin)
+✔ Please enter the password to decrypt the provisioner key: 0QOC9xcq56R1aEyLHPzBqN18Z3WfGZ01
 ✔ CA: https://127.0.0.1:4443/1.0/sign
 ✔ Certificate: mike.crt
 ✔ Private Key: mike.key
