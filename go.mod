@@ -10,7 +10,7 @@ require (
 	github.com/smallstep/certificates v0.22.1
 	github.com/smallstep/cli v0.22.0
 	golang.org/x/net v0.0.0-20220607020251-c690dde0001d
-	google.golang.org/grpc v1.49.0
+	google.golang.org/grpc v1.50.0
 	k8s.io/api v0.0.0-20190327184913-92d2ee7fc726
 	k8s.io/apimachinery v0.0.0-20190326224424-4ceb6b6c5db5
 )
