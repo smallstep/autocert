@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -11,14 +12,15 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/smallstep/certificates/ca"
 	"github.com/smallstep/certificates/pki"
-	"github.com/smallstep/cli/crypto/pemutil"
-	"github.com/smallstep/cli/utils"
+	"go.step.sm/cli-utils/errs"
+	"go.step.sm/crypto/pemutil"
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -661,7 +663,7 @@ func main() {
 		"provisionerKid":  provisionerKid,
 	}).Info("Loaded provisioner configuration")
 
-	password, err := utils.ReadPasswordFromFile(config.GetProvisionerPasswordPath())
+	password, err := readPasswordFromFile(config.GetProvisionerPasswordPath())
 	if err != nil {
 		panic(err)
 	}
@@ -780,4 +782,15 @@ func main() {
 	if err := srv.ListenAndServeTLS("", ""); err != nil {
 		panic(err)
 	}
+}
+
+// readPasswordFromFile reads and returns the password from the given filename.
+// The contents of the file will be trimmed at the right.
+func readPasswordFromFile(filename string) ([]byte, error) {
+	password, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, errs.FileError(err, filename)
+	}
+	password = bytes.TrimRightFunc(password, unicode.IsSpace)
+	return password, nil
 }
