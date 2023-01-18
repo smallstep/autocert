@@ -13,7 +13,7 @@ require (
 	golang.org/x/net v0.5.0
 	google.golang.org/grpc v1.52.0
 	k8s.io/api v0.0.0-20190327184913-92d2ee7fc726
-	k8s.io/apimachinery v0.0.0-20190326224424-4ceb6b6c5db5
+	k8s.io/apimachinery v0.0.0-20190927203648-9ce6eca90e73
 )
 
 require (
@@ -85,6 +85,6 @@ require (
 	gopkg.in/inf.v0 v0.9.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/klog v0.2.1-0.20190306015804-8e90cee79f82 // indirect
+	k8s.io/klog v1.0.0 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
