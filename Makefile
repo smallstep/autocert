@@ -89,16 +89,7 @@ generate:
 test:
 	$Q $(GOFLAGS) gotestsum -- -coverprofile=coverage.out -short -covermode=atomic ./...
 
-vtest:
-	$(Q)for d in $$(go list ./... | grep -v vendor); do \
-    echo -e "TESTS FOR: for \033[0;35m$$d\033[0m"; \
-    $(GOFLAGS) go test -v -bench=. -run=. -short -coverprofile=vcoverage.out $$d; \
-	out=$$?; \
-	if [[ $$out -ne 0 ]]; then ret=$$out; fi;\
-    rm -f profile.coverage.out; \
-	done; exit $$ret;
-
-.PHONY: test vtest
+.PHONY: test
 
 #########################################
 # Linting
