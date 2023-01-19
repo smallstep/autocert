@@ -7,16 +7,19 @@ on:
     branches:
     - "master"
   pull_request:
-  workflow_call:
+    workflow_call:
     secrets:
-      GITLEAKS_LICENSE_KEY:
+      CODECOV_TOKEN:
         required: true
+
 
 jobs:
   ci:
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     uses: smallstep/workflows/.github/workflows/goCI.yml@main
     with:
-      run-gitleaks: true
       run-codeql: true
-    secrets:
-      GITLEAKS_LICENSE_KEY: ${{ secrets.GITLEAKS_LICENSE_KEY }}
+    secrets: inherit
