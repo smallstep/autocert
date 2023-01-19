@@ -9,14 +9,21 @@ on:
   pull_request:
   workflow_call:
     secrets:
-      GITLEAKS_LICENSE_KEY:
+      CODECOV_TOKEN:
         required: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   ci:
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     uses: smallstep/workflows/.github/workflows/goCI.yml@main
     with:
-      run-gitleaks: true
+      only-latest-golang: true
       run-codeql: true
-    secrets:
-      GITLEAKS_LICENSE_KEY: ${{ secrets.GITLEAKS_LICENSE_KEY }}
+    secrets: inherit

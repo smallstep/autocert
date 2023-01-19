@@ -1,4 +1,4 @@
-FROM smallstep/step-cli:0.17.2
+FROM smallstep/step-cli:0.23.1
 
 USER root
 ENV CRT="/var/run/autocert.step.sm/site.crt"
