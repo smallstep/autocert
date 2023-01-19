@@ -128,3 +128,26 @@ ifneq ($(BINNAME),"")
 endif
 
 .PHONY: clean
+
+#################################################
+# Docker images for development
+#################################################
+
+DOCKER_DEV_TAG=docker tag smallstep/$(1):latest localhost:5000/$(1):latest
+DOCKER_DEV_PUSH=docker push localhost:5000/$(1):latest
+
+docker-dev: docker
+	$(call DOCKER_DEV_TAG,autocert-controller)
+	$(call DOCKER_DEV_TAG,autocert-init)
+	$(call DOCKER_DEV_TAG,autocert-bootstrapper)
+	$(call DOCKER_DEV_TAG,autocert-renewer)
+	$(call DOCKER_DEV_PUSH,autocert-controller)
+	$(call DOCKER_DEV_PUSH,autocert-init)
+	$(call DOCKER_DEV_PUSH,autocert-bootstrapper)
+	$(call DOCKER_DEV_PUSH,autocert-renewer)
+
+# starts docker registry for development
+docker-registry:
+	$Q docker run -d -p 5000:5000 --restart=always --name registry registry:2
+
+.PHONY: docker-dev docker-registry
