@@ -12,6 +12,8 @@
 
 To get a certificate **simply annotate your pods** with a name. An X.509 (TLS/HTTPS) certificate is automatically created and mounted at `/var/run/autocert.step.sm/` along with a corresponding private key and root certificate (everything you need for [mTLS](#motivation)).
 
+> By the way, we also have a [cert-manager](https://cert-manager.io/) Certificate Issuer called [step-issuer](https://github.com/smallstep/step-issuer) that works directly with either your [step-ca](https://github.com/smallstep/certificates/) server or [our cloud CA product](https://smallstep.com/certificate-manager/). While Autocert volume mounts certificates and keys directly into Pods, step-issuer makes them available via Secrets.
+
 We ❤️ feedback. Please [report bugs](https://github.com/smallstep/autocert/issues/new?template=autocert_bug.md) & [suggest enhancements](https://github.com/smallstep/autocert/issues/new?template=autocert_enhancement.md). [Fork](https://github.com/smallstep/autocert/fork) and send a PR. [Give us a ⭐](https://github.com/smallstep/autocert/stargazers) if you like what we're doing.
 
 ![Autocert demo gif](https://raw.githubusercontent.com/smallstep/autocert/master/demo.gif)
