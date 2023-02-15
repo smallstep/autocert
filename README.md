@@ -333,8 +333,6 @@ Hello, mike!
 
 ✅ mTLS outside cluster.
 
-<!--- TODO: CTA or Further Reading... Move "How it works" maybe? Or put this below that? --->
-
 ### Cleanup & uninstall
 
 To clean up after running through the tutorial remove the `hello-mtls` and `hello-mtls-client` deployments and services:
@@ -409,15 +407,11 @@ Hopefully this story will improve with time.
 
 #### Why not use kubernetes service accounts instead of bootstrap tokens?
 
-Great idea! This should be pretty easy to add. However, existing service accounts are [somewhat broken](https://github.com/kubernetes/community/pull/1460) for this use case. The upcoming [TokenRequest API](https://github.com/kubernetes/kubernetes/issues/58790) should fix most of these issues.
-
-TODO: Link to issue for people who want this.
+Great idea! This should be pretty easy to add using the [TokenRequest API](https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-request-v1/).
 
 #### Too. many. containers. Why do you need to install an init container and sidecar?
 
 We don't. It's just easier for you. Your containers can generate key pairs, exchange them for certificates, and manage renewals themselves. This is pretty easy if you [install `step`](https://github.com/smallstep/cli#installing) in your containers, or integrate with our [golang SDK](https://godoc.org/github.com/smallstep/certificates/ca). To support this we'd need to add the option to inject a bootstrap token without injecting these containers.
-
-TODO: Link to issue for people who want this.
 
 That said, the init container and sidecar are both super lightweight.
 
