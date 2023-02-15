@@ -6,13 +6,17 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/smallstep/autocert.svg?style=social)](https://github.com/smallstep/autocert/stargazers)
 [![Twitter followers](https://img.shields.io/twitter/follow/smallsteplabs.svg?label=Follow&style=social)](https://twitter.com/intent/follow?screen_name=smallsteplabs)
-[![Join the chat at Discord](https://img.shields.io/badge/discord--green?logo=discord&style=social)](https://bit.ly/step-discord)
+[![Join the Discord](https://img.shields.io/badge/discord--green?logo=discord&style=social)](https://bit.ly/step-discord)
 
-**Autocert** is a kubernetes add-on that automatically injects TLS/HTTPS certificates into your containers.
+**Autocert** is a Kubernetes add-on that automatically injects TLS/HTTPS certificates into your containers, so they can communicate with each other securely.
 
 To get a certificate **simply annotate your pods** with a name. An X.509 (TLS/HTTPS) certificate is automatically created and mounted at `/var/run/autocert.step.sm/` along with a corresponding private key and root certificate (everything you need for [mTLS](#motivation)).
 
-We ❤️ feedback. Please [report bugs](https://github.com/smallstep/autocert/issues/new?template=autocert_bug.md) & [suggest enhancements](https://github.com/smallstep/autocert/issues/new?template=autocert_enhancement.md). [Fork](https://github.com/smallstep/autocert/fork) and send a PR. [Give us a ⭐](https://github.com/smallstep/autocert/stargazers) if you like what we're doing.
+The certificates are signed by an internal [step-ca](https://github.com/smallstep/certificates/) Certificate Authority (CA) or by [Certificate Manager](https://smallstep.com/certificate-manager/) (see [Tutorial & Demo](#tutorial--demo)).
+
+> By the way, we also have a [cert-manager](https://cert-manager.io/) Certificate Issuer called [step-issuer](https://github.com/smallstep/step-issuer) that works directly with either your [step-ca](https://github.com/smallstep/certificates/) server or [our cloud CA product](https://smallstep.com/certificate-manager/). While Autocert volume mounts certificates and keys directly into Pods, step-issuer makes them available via Secrets.
+
+We ❤️  feedback, [bugs](https://github.com/smallstep/autocert/issues/new?template=autocert_bug.md), and [enhancement suggestions](https://github.com/smallstep/autocert/issues/new?template=autocert_enhancement.md). We also have an #autocert channel [on our Discord](https://bit.ly/step-discord).
 
 ![Autocert demo gif](https://raw.githubusercontent.com/smallstep/autocert/master/demo.gif)
 
@@ -20,11 +24,11 @@ We ❤️ feedback. Please [report bugs](https://github.com/smallstep/autocert/i
 
 `Autocert` exists to **make it easy to use mTLS** ([mutual TLS](examples/hello-mtls/README.md#mutual-tls)) to **improve security** within a cluster and to **secure communication into, out of, and between kubernetes clusters**.
 
-TLS (and HTTPS, which is HTTP over TLS) provides _authenticated encryption_: an _identity dialtone_ and _end-to-end encryption_ for your workloads. It's like a secure line with caller ID. This has all sorts of benefits: better security, compliance, and easier auditability for starters. It **makes workloads identity-aware**, improving observability and enabling granular access control. Perhaps most compelling, mTLS lets you securely communicate with workloads running anywhere, not just inside kubernetes.
+TLS (and HTTPS, which is HTTP over TLS) provides _authenticated encryption_: an _identity dialtone_ and _end-to-end encryption_ for your workloads. It **makes workloads identity-aware**, improving observability and enabling granular access control. Perhaps most compelling, mTLS lets you securely communicate with workloads running anywhere, not just inside kubernetes.
 
 ![Connect with mTLS diagram](https://raw.githubusercontent.com/smallstep/autocert/master/connect-with-mtls.png)
 
-Unlike VPNs & SDNs, deploying and scaling mTLS is pretty easy. You're (hopefully) already using TLS, and your existing tools and standard libraries will provide most of what you need. If you know how to operate DNS and reverse proxies, you know how to operate mTLS infrastructure.
+Unlike VPNs & SDNs, deploying and scaling mTLS is pretty easy. You're (hopefully) already using TLS, and your existing tools and standard libraries will provide most of what you need.
 
 There's just one problem: **you need certificates issued by your own certificate authority (CA)**. Building and operating a CA, issuing certificates, and making sure they're renewed before they expire is tricky. `Autocert` does all of this for you.
 
@@ -32,17 +36,17 @@ There's just one problem: **you need certificates issued by your own certificate
 
 First and foremost, `autocert` is easy. You can **get started in minutes**.
 
-`Autocert` uses [`step certificates`](https://github.com/smallstep/certificates) to generate keys and issue certificates. This process is secure and automatic, all you have to do is [install autocert](#install) and [annotate your pods](#enable-autocert-per-namespace).
+`Autocert` runs [`step-ca`](https://github.com/smallstep/certificates) to internally generate keys and issue certificates. This process is secure and automatic, all you have to do is [install autocert](#install) and [annotate your pods](#enable-autocert-per-namespace).
 
 Features include:
 
- * A fully featured private **certificate authority** (CA) for workloads running on kubernetes and elsewhere
- * [RFC5280](https://tools.ietf.org/html/rfc5280) and [CA/Browser Forum](https://cabforum.org/baseline-requirements-documents/) compliant certificates that work **for TLS**
- * Namespaced installation into the `step` namespace so it's **easy to lock down** your CA
- * Short-lived certificates with **fully automated** enrollment and renewal
+ * A fully featured private CA for workloads running on kubernetes and elsewhere
+ * [RFC5280](https://tools.ietf.org/html/rfc5280) and [CA/Browser Forum](https://cabforum.org/baseline-requirements-documents/) compliant certificates that work for TLS
+ * Namespaced installation into the `step` namespace so it's easy to lock down your CA
+ * Short-lived certificates with fully automated enrollment and renewal
  * Private keys are never transmitted across the network and aren't stored in `etcd`
 
- Because `autocert` is built on [`step certificates`](https://github.com/smallstep/certificates) you can easily [extend access](#connecting-from-outside-the-cluster) to developers, endpoints, and workloads running outside your cluster, too.
+ Because `autocert` is built on [`step-ca`](https://github.com/smallstep/certificates) you can easily [extend access](#connecting-from-outside-the-cluster) to developers, endpoints, and workloads running outside your cluster, too.
 
 ## Tutorial & Demo
 
@@ -50,21 +54,22 @@ Features include:
 
 In [this tutorial video](https://www.youtube.com/watch?v=NhHkfvSuKiM), Smallstep Software Engineer Andrew Reed shows how to use autocert alongside Smallstep [Certificate Manager](https://smallstep.com/certificate-manager/) hosted CA.
 
-## Getting Started
+## Installation
 
 ### Prerequisites
 
-All you need to get started is [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl) and a cluster running kubernetes `1.9` or later with [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks) enabled:
+All you need to get started is [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl) and a cluster running kubernetes with [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks) enabled:
 
 ```bash
-$ kubectl version --short
-Client Version: v1.13.1
-Server Version: v1.10.11
-$ kubectl api-versions | grep "admissionregistration.k8s.io/v1beta1"
-admissionregistration.k8s.io/v1beta1
+$ kubectl version
+Client Version: v1.26.1
+Kustomize Version: v4.5.7
+Server Version: v1.25.3
+$ kubectl api-versions | grep "admissionregistration.k8s.io/v1"
+admissionregistration.k8s.io/v1
 ```
 
-### Install
+### Install via `kubectl`
 
 To install `autocert` run:
 
@@ -76,11 +81,14 @@ kubectl run autocert-init -it --rm --image cr.step.sm/smallstep/autocert-init --
 
 > You might want to [check out what this command does](init/autocert.sh) before running it. You can also [install `autocert` manually](INSTALL.md#manual-install) if that's your style.
 
+#### Install via Helm
+
 Autocert can also be installed using the [Helm](https://helm.sh) package
 manager, to install the repository and `autocert` run:
 
 ```bash
 helm repo add smallstep https://smallstep.github.io/helm-charts/
+helm repo update
 helm install smallstep/autocert
 ```
 
@@ -327,8 +335,6 @@ Hello, mike!
 
 ✅ mTLS outside cluster.
 
-<!--- TODO: CTA or Further Reading... Move "How it works" maybe? Or put this below that? --->
-
 ### Cleanup & uninstall
 
 To clean up after running through the tutorial remove the `hello-mtls` and `hello-mtls-client` deployments and services:
@@ -358,16 +364,9 @@ It integrates with [`step certificates`](https://github.com/smallstep/certificat
 
 Tokens are [generated by the admission webhook](controller/provisioner.go#L46-L72) and [transmitted to the injected init container via a kubernetes secret](controller/main.go#L91-L125). The init container [uses the one-time token](bootstrapper/bootstrapper.sh) to obtain a certificate. A sidecar is also installed to [renew certificates](renewer/Dockerfile#L8) before they expire. Renewal simply uses mTLS with the CA.
 
-## Further Reading
+## FAQs
 
- * We tweet [@smallsteplabs](https://twitter.com/smallsteplabs)
- * Read [our blog](https://smallstep.com/blog)
- * Check out the [runbook](RUNBOOK.md)
- * Check out [`step` CLI](https://github.com/smallstep/cli)
-
-## Questions
-
-#### Wait, so any pod can get a certificate with any identity? How is that secure?
+### Wait, so any pod can get a certificate with any identity? How is that secure?
 
  1. Don't give people `kubectl` access to your production clusters
  2. Use a deploy pipeline based on `git` artifacts
@@ -375,19 +374,28 @@ Tokens are [generated by the admission webhook](controller/provisioner.go#L46-L7
 
  If that doesn't work for you, or if you have a better idea, we'd love to hear! Please [open an issue](https://github.com/smallstep/autocert/issues/new?template=autocert_enhancement.md)!
 
- #### Why do I have to tell you the name to put in a certificate? Why can't you automatically bind service names?
+ ### Why do I have to tell you the name to put in a certificate? Why can't you automatically bind service names?
 
 Mostly because monitoring the API server to figure out which services are associated with which workloads is complicated and somewhat magical. And it might not be what you want.
 
 That said, we're not totally opposed to this idea. If anyone has strong feels and a good design please [open an issue](https://github.com/smallstep/autocert/issues/new?template=autocert_enhancement.md).
 
-#### Doesn't kubernetes already ship with a certificate authority?
+### Doesn't Kubernetes already ship with a CA?
 
-Yes, it uses [a bunch of CAs](https://jvns.ca/blog/2017/08/05/how-kubernetes-certificates-work/) for different sorts of control plane communication. Technically, kubernetes doesn't _come with_ a CA. It has integration points that allow you to use any CA (e.g., [Kubernetes the hard way](https://github.com/kelseyhightower/kubernetes-the-hard-way) [uses CFSSL](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/2983b28f13b294c6422a5600bb6f14142f5e7a26/docs/02-certificate-authority.md). You could use [`step certificates`](https://github.com/smallstep/certificates), which `autocert` is based on, instead.
+Kubernetes needs [several certificates](https://jvns.ca/blog/2017/08/05/how-kubernetes-certificates-work/) for different sorts of control plane communication.
+It ships with a very limited CA
+and integration points that allow you to use an alternative CA.
 
-In any case, these CAs are meant for control plane communication. You could use them for your service-to-service data plane, but it's probably not a good idea.
+The built-in Kuberenetes CA is limited to signing certificates for kubeconfigs and kubelets.
+Specifically, the [controller-manager will sign CSRs in some cases](https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/#signer-control-plane).
 
-#### What permissions does `autocert` require in my cluster and why?
+See our blog [Automating TLS in Kubernetes The Hard Way](https://smallstep.com/blog/kubernetes-the-secure-way/) to learn a lot more.
+
+While you _could_ use the Kubernetes CA for service-to-service data plane and ingress certificates,
+we don't recommend it.
+Having two CAs will give you a crisp cryptographic boundary.
+
+### What permissions does `autocert` require in my cluster and why?
 
 `Autocert` needs permission to create and delete secrets cluster-wide. You can [check out our RBAC config here](install/03-rbac.yaml). These permissions are needed in order to transmit one-time tokens to workloads using secrets, and to clean up afterwards. We'd love to scope these permissions down further. If anyone has any ideas please [open an issue](https://github.com/smallstep/autocert/issues/new?template=autocert_enhancement.md).
 
@@ -401,41 +409,33 @@ Since our webhook can't authenticate callers, including bootstrap tokens in patc
 
 Hopefully this story will improve with time.
 
-#### Why not use kubernetes service accounts instead of bootstrap tokens?
+### Why not use kubernetes service accounts instead of bootstrap tokens?
 
-Great idea! This should be pretty easy to add. However, existing service accounts are [somewhat broken](https://github.com/kubernetes/community/pull/1460) for this use case. The upcoming [TokenRequest API](https://github.com/kubernetes/kubernetes/issues/58790) should fix most of these issues.
+Great idea! This should be pretty easy to add using the [TokenRequest API](https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-request-v1/).
 
-TODO: Link to issue for people who want this.
-
-#### Too. many. containers. Why do you need to install an init container and sidecar?
+### Too. many. containers. Why do you need to install an init container _and_ a sidecar?
 
 We don't. It's just easier for you. Your containers can generate key pairs, exchange them for certificates, and manage renewals themselves. This is pretty easy if you [install `step`](https://github.com/smallstep/cli#installing) in your containers, or integrate with our [golang SDK](https://godoc.org/github.com/smallstep/certificates/ca). To support this we'd need to add the option to inject a bootstrap token without injecting these containers.
 
-TODO: Link to issue for people who want this.
-
 That said, the init container and sidecar are both super lightweight.
 
-#### Why are keys and certificates managed via volume mounts? Why not use a secret or some custom resource?
+### Why are keys and certificates managed via volume mounts? Why not use a Secret or some custom resource?
 
-Because, by default, kubernetes secrets are stored in plaintext in `etcd` and might even be transmitted unencrypted across the network. Even if secrets were properly encrypted, transmitting a private key across the network violates PKI best practices. Key pairs should always be generated where they're used, and private keys should never be known by anyone but their owners.
+Because, by default, kubernetes Secrets are stored in plaintext in `etcd` and might even be transmitted unencrypted across the network. Even if Secrets were properly encrypted, transmitting a private key across the network violates PKI best practices. Key pairs should always be generated where they're used, and private keys should never be known by anyone but their owners.
 
-That said, there are use cases where a certificate mounted in a secret resource is desirable (e.g., for use with a kubernetes `Ingress`). We may add support for this in the future. However, we think the current method is easier and a better default.
+That said, there are use cases where a certificate mounted in a Secret resource is desirable (e.g., for use with a kubernetes `Ingress`). For that, we recommend [`step-issuer`](https://github.com/smallstep/step-issuer).
 
-TODO: Link to issue for people who want this.
+(Add a 👍 to smallstep/autocert#48 I'd like `autocert` to expose Secrets in the future.)
 
-#### Why not use kubernetes CSR resources for this?
+### How is this different than [`cert-manager`](https://github.com/jetstack/cert-manager)
 
-It's harder and less secure. If any good and simple design exists for securely automating CSR approval using this resource we'd love to see it!
+`Cert-manager` is a great project, but it's design is focused on managing Web PKI certificates issued by [Let's Encrypt's](https://letsencrypt.org/) public certificate authority. These certificates are useful for TLS ingress from web browsers. `Autocert` is purpose-built to manage certificates issued by your own private CA to support the use of mTLS for service-to-service communication.
 
-#### How is this different than [`cert-manager`](https://github.com/jetstack/cert-manager)
-
-`Cert-manager` is a great project. But it's design is focused on managing Web PKI certificates issued by [Let's Encrypt's](https://letsencrypt.org/) public certificate authority. These certificates are useful for TLS ingress from web browsers. `Autocert` is different. It's purpose-built to manage certificates issued by your own private CA to support the use of mTLS for internal communication (e.g., service-to-service).
-
-#### What sorts of keys are issued and how often are certificates rotated?
+### What sorts of keys are issued and how often are certificates rotated?
 
 `Autocert` builds on `step certificates` which issues ECDSA certificates using the P256 curve with ECDSA-SHA256 signatures by default. If this is all Greek to you, rest assured these are safe, sane, and modern defaults that are suitable for the vast majority of environments.
 
-#### What crypto library is under the hood?
+### What crypto library is under the hood?
 
 https://golang.org/pkg/crypto/
 
@@ -468,8 +468,15 @@ If you want to contribute but you're not sure where to start, take a look at the
 
 If you've identified a bug or have ideas for improving `autocert` that you don't have time to implement, we'd love to hear about them. Please open an issue to [report a bug](https://github.com/smallstep/autocert/issues/new?template=autocert_bug.md) or [suggest an enhancement](https://github.com/smallstep/autocert/issues/new?template=autocert_enhancement.md)!
 
+## Further Reading
+
+ * We tweet [@smallsteplabs](https://twitter.com/smallsteplabs)
+ * Read [our blog](https://smallstep.com/blog)
+ * Check out the [runbook](RUNBOOK.md)
+ * Check out [`step` CLI](https://github.com/smallstep/cli)
+
 ## License
 
-Copyright 2019 Smallstep Labs
+Copyright 2023 Smallstep Labs
 
 Licensed under [the Apache License, Version 2.0](https://github.com/smallstep/autocert/blob/master/LICENSE)
