@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/ghodss/yaml v1.0.0
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/smallstep/certificates v0.23.2
