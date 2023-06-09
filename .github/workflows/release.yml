@@ -67,42 +67,12 @@ jobs:
           prerelease: ${{ steps.is_prerelease.outputs.IS_PRERELEASE }}
 
   goreleaser:
-    name: Upload Assets to Github w/ goreleaser
-    runs-on: ubuntu-latest
     needs: create_release
     permissions:
       id-token: write
       contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
-          check-latest: true
-      - name: Configure Go
-        id: configure_go
-        run: |
-          PATH=$PATH:/usr/local/go/bin:/home/admin/go/bin
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v2
-        with:
-          cosign-release: 'v1.13.1'
-      - name: Get Release Date
-        id: release_date
-        run: |
-          RELEASE_DATE=$(date +"%y-%m-%d")
-          echo "RELEASE_DATE=${RELEASE_DATE}" >> ${GITHUB_ENV}
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v3
-        with:
-          version: 'latest'
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GORELEASER_PAT }}
-          COSIGN_EXPERIMENTAL: 1
-          RELEASE_DATE: ${{ env.RELEASE_DATE }}
+    uses: smallstep/workflows/.github/workflows/goreleaser.yml@main
+    secrets: inherit
 
   build_upload_docker_autocert_init:
     name: Build & Upload Autocert Init Docker Images
