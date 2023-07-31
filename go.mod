@@ -13,7 +13,7 @@ require (
 	golang.org/x/net v0.12.0
 	google.golang.org/grpc v1.56.2
 	k8s.io/api v0.28.0-beta.0
-	k8s.io/apimachinery v0.28.0-beta.0
+	k8s.io/apimachinery v0.29.0-alpha.0
 )
 
 require (
