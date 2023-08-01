@@ -20,6 +20,7 @@ import (
 	"github.com/smallstep/certificates/ca"
 	"github.com/smallstep/certificates/pki"
 	"go.step.sm/cli-utils/errs"
+	"go.step.sm/cli-utils/step"
 	"go.step.sm/crypto/pemutil"
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -641,6 +642,11 @@ func main() {
 
 	config, err := loadConfig(os.Args[1])
 	if err != nil {
+		panic(err)
+	}
+
+	// Initialize step environment
+	if err := step.Init(); err != nil {
 		panic(err)
 	}
 
