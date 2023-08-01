@@ -8,7 +8,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smallstep/certificates v0.24.2
-	go.step.sm/cli-utils v0.7.6
+	go.step.sm/cli-utils v0.8.0
 	go.step.sm/crypto v0.33.0
 	golang.org/x/net v0.12.0
 	google.golang.org/grpc v1.57.0
@@ -75,7 +75,7 @@ require (
 	github.com/smallstep/go-attestation v0.4.4-0.20230509120429-e17291421738 // indirect
 	github.com/smallstep/nosql v0.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
-	github.com/urfave/cli v1.22.13 // indirect
+	github.com/urfave/cli v1.22.14 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.mozilla.org/pkcs7 v0.0.0-20210826202110-33d05740a352 // indirect
