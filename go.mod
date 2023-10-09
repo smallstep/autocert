@@ -12,7 +12,7 @@ require (
 	go.step.sm/crypto v0.35.1
 	golang.org/x/net v0.15.0
 	google.golang.org/grpc v1.58.2
-	k8s.io/api v0.29.0-alpha.0
+	k8s.io/api v0.29.0-alpha.1
 	k8s.io/apimachinery v0.29.0-alpha.1
 )
 
