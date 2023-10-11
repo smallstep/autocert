@@ -10,7 +10,7 @@ require (
 	github.com/smallstep/certificates v0.25.0
 	go.step.sm/cli-utils v0.8.0
 	go.step.sm/crypto v0.35.1
-	golang.org/x/net v0.15.0
+	golang.org/x/net v0.17.0
 	google.golang.org/grpc v1.58.2
 	k8s.io/api v0.29.0-alpha.0
 	k8s.io/apimachinery v0.29.0-alpha.1
@@ -83,9 +83,9 @@ require (
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.mozilla.org/pkcs7 v0.0.0-20210826202110-33d05740a352 // indirect
 	go.step.sm/linkedca v0.20.1 // indirect
-	golang.org/x/crypto v0.13.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/exp v0.0.0-20230310171629-522b1b587ee0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
