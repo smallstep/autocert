@@ -36,25 +36,28 @@ jobs:
           echo ${{ github.ref }} | grep "\-rc.*"
           OUT=$?
           if [ $OUT -eq 0 ]; then IS_PRERELEASE=true; else IS_PRERELEASE=false; fi
-          echo "IS_PRERELEASE=${IS_PRERELEASE}" >> ${GITHUB_OUTPUT}
+          echo "IS_PRERELEASE=${IS_PRERELEASE}" >> "${GITHUB_OUTPUT}"
       - name: Extract Tag Names
         id: extract-tag
         run: |
-          VVERSION=${GITHUB_REF#refs/tags/}
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "VVERSION=${VVERSION}" >> ${GITHUB_OUTPUT}
-          echo "VERSION=${VERSION}" >> ${GITHUB_OUTPUT}
-          echo "INIT_DOCKER_TAGS=${{ env.INIT_DOCKER_IMAGE }}:${VERSION}" >> ${GITHUB_ENV}
-          echo "BOOTSTRAPPER_DOCKER_TAGS=${{ env.BOOTSTRAPPER_DOCKER_IMAGE }}:${VERSION}" >> ${GITHUB_ENV}
-          echo "RENEWER_DOCKER_TAGS=${{ env.RENEWER_DOCKER_IMAGE }}:${VERSION}" >> ${GITHUB_ENV}
-          echo "CONTROLLER_DOCKER_TAGS=${{ env.CONTROLLER_DOCKER_IMAGE }}:${VERSION}" >> ${GITHUB_ENV}
+          VVERSION="${GITHUB_REF#refs/tags/}"
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          # shellcheck disable=SC2129
+          echo "VVERSION=${VVERSION}" >> "${GITHUB_OUTPUT}"
+          echo "VERSION=${VERSION}" >> "${GITHUB_OUTPUT}"
+          # shellcheck disable=SC2129
+          echo "INIT_DOCKER_TAGS=${{ env.INIT_DOCKER_IMAGE }}:${VERSION}" >> "${GITHUB_ENV}"
+          echo "BOOTSTRAPPER_DOCKER_TAGS=${{ env.BOOTSTRAPPER_DOCKER_IMAGE }}:${VERSION}" >> "${GITHUB_ENV}"
+          echo "RENEWER_DOCKER_TAGS=${{ env.RENEWER_DOCKER_IMAGE }}:${VERSION}" >> "${GITHUB_ENV}"
+          echo "CONTROLLER_DOCKER_TAGS=${{ env.CONTROLLER_DOCKER_IMAGE }}:${VERSION}" >> "${GITHUB_ENV}"
       - name: Add Latest Tag
         if: steps.is_prerelease.outputs.IS_PRERELEASE == 'false'
         run: |
-          echo "INIT_DOCKER_TAGS=${{ env.INIT_DOCKER_TAGS }},${{ env.INIT_DOCKER_IMAGE }}:latest" >> ${GITHUB_ENV}
-          echo "BOOTSTRAPPER_DOCKER_TAGS=${{ env.BOOTSTRAPPER_DOCKER_TAGS }},${{ env.BOOTSTRAPPER_DOCKER_IMAGE }}:latest" >> ${GITHUB_ENV}
-          echo "RENEWER_DOCKER_TAGS=${{ env.RENEWER_DOCKER_TAGS }},${{ env.RENEWER_DOCKER_IMAGE }}:latest" >> ${GITHUB_ENV}
-          echo "CONTROLLER_DOCKER_TAGS=${{ env.CONTROLLER_DOCKER_TAGS }},${{ env.CONTROLLER_DOCKER_IMAGE }}:latest" >> ${GITHUB_ENV}
+          # shellcheck disable=SC2129
+          echo "INIT_DOCKER_TAGS=${{ env.INIT_DOCKER_TAGS }},${{ env.INIT_DOCKER_IMAGE }}:latest" >> "${GITHUB_ENV}"
+          echo "BOOTSTRAPPER_DOCKER_TAGS=${{ env.BOOTSTRAPPER_DOCKER_TAGS }},${{ env.BOOTSTRAPPER_DOCKER_IMAGE }}:latest" >> "${GITHUB_ENV}"
+          echo "RENEWER_DOCKER_TAGS=${{ env.RENEWER_DOCKER_TAGS }},${{ env.RENEWER_DOCKER_IMAGE }}:latest" >> "${GITHUB_ENV}"
+          echo "CONTROLLER_DOCKER_TAGS=${{ env.CONTROLLER_DOCKER_TAGS }},${{ env.CONTROLLER_DOCKER_IMAGE }}:latest" >> "${GITHUB_ENV}"
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
