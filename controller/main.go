@@ -27,6 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/utils/ptr"
 )
 
 var (
@@ -303,7 +304,8 @@ func mkBootstrapper(config *Config, podName, commonName, duration, owner, mode, 
 					LocalObjectReference: corev1.LocalObjectReference{
 						Name: secretName,
 					},
-					Key: tokenSecretKey,
+					Key:      tokenSecretKey,
+					Optional: ptr.To[bool](true),
 				},
 			},
 		},

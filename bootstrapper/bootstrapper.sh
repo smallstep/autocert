@@ -1,5 +1,11 @@
 #!/bin/sh
 
+
+if [ -f "$STEP_ROOT" ];
+    echo "Found existing $STEP_ROOT, skipping bootstrap"
+    exit 0
+fi
+
 # Download the root certificate and set permissions
 if [ "$DURATION" == "" ];
 then
