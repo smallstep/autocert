@@ -2,6 +2,7 @@
 
 
 if [ -f "$STEP_ROOT" ];
+then
     echo "Found existing $STEP_ROOT, skipping bootstrap"
     exit 0
 fi
