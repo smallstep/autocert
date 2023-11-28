@@ -15,7 +15,7 @@ require (
 	golang.org/x/net v0.17.0
 	google.golang.org/grpc v1.59.0
 	k8s.io/api v0.29.0-alpha.2
-	k8s.io/apimachinery v0.29.0-alpha.3
+	k8s.io/apimachinery v0.30.0-alpha.0
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 )
 
