@@ -1,8 +1,6 @@
 module github.com/smallstep/autocert
 
-go 1.21.3
-
-toolchain go1.21.4
+go 1.21
 
 require (
 	github.com/ghodss/yaml v1.0.0
@@ -14,9 +12,9 @@ require (
 	go.step.sm/crypto v0.36.1
 	golang.org/x/net v0.17.0
 	google.golang.org/grpc v1.59.0
-	k8s.io/api v0.29.0-alpha.2
-	k8s.io/apimachinery v0.29.0-alpha.3
-	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
+	k8s.io/api v0.30.0-alpha.0
+	k8s.io/apimachinery v0.30.0-alpha.0
+	k8s.io/utils v0.0.0-20231127182322-b307cd553661
 )
 
 require (
