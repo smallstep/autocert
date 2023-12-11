@@ -3,7 +3,6 @@ module github.com/smallstep/autocert
 go 1.21
 
 require (
-	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.3
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
@@ -15,6 +14,7 @@ require (
 	k8s.io/api v0.30.0-alpha.0
 	k8s.io/apimachinery v0.30.0-alpha.0
 	k8s.io/utils v0.0.0-20231127182322-b307cd553661
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
@@ -94,5 +94,4 @@ require (
 	k8s.io/klog/v2 v2.110.1 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )
