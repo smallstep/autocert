@@ -10,7 +10,7 @@ require (
 	go.step.sm/cli-utils v0.8.0
 	go.step.sm/crypto v0.40.0
 	golang.org/x/net v0.19.0
-	google.golang.org/grpc v1.59.0
+	google.golang.org/grpc v1.60.0
 	k8s.io/api v0.30.0-alpha.0
 	k8s.io/apimachinery v0.30.0-alpha.0
 	k8s.io/utils v0.0.0-20231127182322-b307cd553661
