@@ -85,7 +85,7 @@ jobs:
       contents: write
     uses: smallstep/workflows/.github/workflows/docker-buildx-push.yml@main
     with:
-      platforms: linux/amd64
+      platforms: linux/amd64,linux/arm64
       tags: ${{ needs.create_release.outputs.init_docker_tags }}
       docker_image: smallstep/autocert-init
       docker_file: init/Dockerfile
@@ -99,7 +99,7 @@ jobs:
       contents: write
     uses: smallstep/workflows/.github/workflows/docker-buildx-push.yml@main
     with:
-      platforms: linux/amd64
+      platforms: linux/amd64,linux/arm64
       tags: ${{ needs.create_release.outputs.renewer_docker_tags }}
       docker_image: smallstep/autocert-renewer
       docker_file: renewer/Dockerfile
@@ -113,7 +113,7 @@ jobs:
       contents: write
     uses: smallstep/workflows/.github/workflows/docker-buildx-push.yml@main
     with:
-      platforms: linux/amd64
+      platforms: linux/amd64,linux/arm64
       tags: ${{ needs.create_release.outputs.bootstrapper_docker_tags }}
       docker_image: smallstep/autocert-bootstrapper
       docker_file: bootstrapper/Dockerfile
@@ -127,7 +127,7 @@ jobs:
       contents: write
     uses: smallstep/workflows/.github/workflows/docker-buildx-push.yml@main
     with:
-      platforms: linux/amd64
+      platforms: linux/amd64,linux/arm64
       tags: ${{ needs.create_release.outputs.controller_docker_tags }}
       docker_image: smallstep/autocert-controller
       docker_file: controller/Dockerfile
