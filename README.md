@@ -413,6 +413,10 @@ Hopefully this story will improve with time.
 
 Great idea! This should be pretty easy to add using the [TokenRequest API](https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-request-v1/).
 
+### Can I lengthen the duration of the bootstrap tokens?
+
+If you're facing deployment times longer than five minutes, use the annotation `autocert.step.sm/init-first: "true"`, which will force the bootstrapper to run before any other initContainer. As long as the CA is available, you will get a certificate valid for 24h that should be enough for initializing the rest of the deployment. After the bootstrapper, it will run the rest of the initContainers that can wait for the dependencies to be ready. See [smallstep/autocert#108](https://github.com/smallstep/autocert/issues/108) for more details.
+
 ### Too. many. containers. Why do you need to install an init container _and_ a sidecar?
 
 We don't. It's just easier for you. Your containers can generate key pairs, exchange them for certificates, and manage renewals themselves. This is pretty easy if you [install `step`](https://github.com/smallstep/cli#installing) in your containers, or integrate with our [golang SDK](https://godoc.org/github.com/smallstep/certificates/ca). To support this we'd need to add the option to inject a bootstrap token without injecting these containers.

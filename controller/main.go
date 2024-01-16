@@ -14,18 +14,20 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/smallstep/certificates/ca"
 	"github.com/smallstep/certificates/pki"
 	"go.step.sm/cli-utils/errs"
+	"go.step.sm/cli-utils/step"
 	"go.step.sm/crypto/pemutil"
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/utils/ptr"
+	"sigs.k8s.io/yaml"
 )
 
 var (
@@ -302,7 +304,8 @@ func mkBootstrapper(config *Config, podName, commonName, duration, owner, mode, 
 					LocalObjectReference: corev1.LocalObjectReference{
 						Name: secretName,
 					},
-					Key: tokenSecretKey,
+					Key:      tokenSecretKey,
+					Optional: ptr.To[bool](true),
 				},
 			},
 		},
@@ -641,6 +644,11 @@ func main() {
 
 	config, err := loadConfig(os.Args[1])
 	if err != nil {
+		panic(err)
+	}
+
+	// Initialize step environment
+	if err := step.Init(); err != nil {
 		panic(err)
 	}
 

@@ -6,9 +6,9 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
+	"os"
 	"sync"
 	"time"
 
@@ -55,7 +55,7 @@ func (r *rotator) loadCertificate(certFile, keyFile string) error {
 }
 
 func loadRootCertPool() (*x509.CertPool, error) {
-	root, err := ioutil.ReadFile(autocertRoot)
+	root, err := os.ReadFile(autocertRoot)
 	if err != nil {
 		return nil, err
 	}

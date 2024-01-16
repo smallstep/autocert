@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -48,7 +48,7 @@ func (r *rotator) loadCertificate(certFile, keyFile string) error {
 }
 
 func loadRootCertPool() (*x509.CertPool, error) {
-	root, err := ioutil.ReadFile(autocertRoot)
+	root, err := os.ReadFile(autocertRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func main() {
 		}
 
 		defer r.Body.Close()
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Fatal(err)
 		}
