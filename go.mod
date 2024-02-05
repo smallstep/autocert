@@ -8,7 +8,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smallstep/certificates v0.25.3-0.20231213004719-62e09de2c6a8
 	go.step.sm/cli-utils v0.8.0
-	go.step.sm/crypto v0.42.1
+	go.step.sm/crypto v0.43.0
 	golang.org/x/net v0.20.0
 	google.golang.org/grpc v1.61.0
 	k8s.io/api v0.30.0-alpha.0
@@ -38,7 +38,7 @@ require (
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
-	github.com/go-logr/logr v1.3.0 // indirect
+	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.1.2 // indirect
