@@ -40,7 +40,7 @@ func (kc *k8sClient) GetRequest(url string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(kc.token) > 0 {
+	if kc.token != "" {
 		req.Header.Set("Authorization", "Bearer "+kc.token)
 	}
 	return req, nil
@@ -54,7 +54,7 @@ func (kc *k8sClient) PostRequest(url, body, contentType string) (*http.Request, 
 	if err != nil {
 		return nil, err
 	}
-	if len(kc.token) > 0 {
+	if kc.token != "" {
 		req.Header.Set("Authorization", "Bearer "+kc.token)
 	}
 	if contentType != "" {
@@ -71,7 +71,7 @@ func (kc *k8sClient) DeleteRequest(url string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(kc.token) > 0 {
+	if kc.token != "" {
 		req.Header.Set("Authorization", "Bearer "+kc.token)
 	}
 	return req, nil
