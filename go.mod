@@ -3,7 +3,7 @@ module github.com/smallstep/autocert
 go 1.21
 
 require (
-	github.com/golang/protobuf v1.5.3
+	github.com/golang/protobuf v1.5.4
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smallstep/certificates v0.25.3-rc6
