@@ -6,7 +6,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/smallstep/certificates v0.26.0-rc2
+	github.com/smallstep/certificates v0.26.0
 	go.step.sm/cli-utils v0.9.0
 	go.step.sm/crypto v0.44.2
 	golang.org/x/net v0.22.0
