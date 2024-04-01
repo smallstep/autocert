@@ -8,7 +8,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smallstep/certificates v0.26.0-rc2
 	go.step.sm/cli-utils v0.9.0
-	go.step.sm/crypto v0.44.1
+	go.step.sm/crypto v0.44.2
 	golang.org/x/net v0.22.0
 	google.golang.org/grpc v1.62.1
 	k8s.io/api v0.30.0-alpha.3
@@ -92,7 +92,7 @@ require (
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240311132316-a219d84964c2 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240314234333-6e1732d8331c // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
