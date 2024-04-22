@@ -1,4 +1,4 @@
-FROM smallstep/step-cli:0.23.0
+FROM smallstep/step-cli:0.26.0
 
 ENV CA_NAME="Autocert"
 ENV CA_DNS="ca.step.svc.cluster.local,127.0.0.1"
@@ -6,7 +6,7 @@ ENV CA_ADDRESS=":4443"
 ENV CA_DEFAULT_PROVISIONER="admin"
 ENV CA_URL="ca.step.svc.cluster.local"
 
-ENV KUBE_LATEST_VERSION="v1.18.2"
+ENV KUBE_LATEST_VERSION="v1.30.0"
 
 ENV AUTO_START=false
 
