@@ -41,8 +41,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 h1:Ji0DY1x
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2/go.mod h1:5CsjAbs3NlGQyZNFACh+zztPDI7fU6eW9QsxjfnuBKg=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.7 h1:ogRAwT1/gxJBcSWDMZlgyFUM962F51A5CRhDLbxLdmo=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.7/go.mod h1:YCsIZhXfRPLFFCl5xxY+1T9RKzOKjCut+28JSX2DnAk=
-github.com/aws/aws-sdk-go-v2/service/kms v1.30.1 h1:SBn4I0fJXF9FYOVRSVMWuhvEKoAHDikjGpS3wlmw5DE=
-github.com/aws/aws-sdk-go-v2/service/kms v1.30.1/go.mod h1:2snWQJQUKsbN66vAawJuOGX7dr37pfOq9hb0tZDGIqQ=
+github.com/aws/aws-sdk-go-v2/service/kms v1.31.0 h1:yl7wcqbisxPzknJVfWTLnK83McUvXba+pz2+tPbIUmQ=
+github.com/aws/aws-sdk-go-v2/service/kms v1.31.0/go.mod h1:2snWQJQUKsbN66vAawJuOGX7dr37pfOq9hb0tZDGIqQ=
 github.com/aws/aws-sdk-go-v2/service/sso v1.20.5 h1:vN8hEbpRnL7+Hopy9dzmRle1xmDc7o8tmY0klsr175w=
 github.com/aws/aws-sdk-go-v2/service/sso v1.20.5/go.mod h1:qGzynb/msuZIE8I75DVRCUXw3o3ZyBmUvMwQ2t/BrGM=
 github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.4 h1:Jux+gDDyi1Lruk+KHF91tK2KCuY61kzoCpvtvJJBtOE=
@@ -380,8 +380,8 @@ go.opentelemetry.io/otel/trace v1.24.0 h1:CsKnnL4dUAr/0llH9FKuc698G04IrpWV0MQA/Y
 go.opentelemetry.io/otel/trace v1.24.0/go.mod h1:HPc3Xr/cOApsBI154IU0OI0HJexz+aw5uPdbs3UCjNU=
 go.step.sm/cli-utils v0.9.0 h1:55jYcsQbnArNqepZyAwcato6Zy2MoZDRkWW+jF+aPfQ=
 go.step.sm/cli-utils v0.9.0/go.mod h1:Y/CRoWl1FVR9j+7PnAewufAwKmBOTzR6l9+7EYGAnp8=
-go.step.sm/crypto v0.44.3 h1:HA/eHC6mqw+WRP0wT2SqJq/Ch//Z4yJoSLV7kBmAIME=
-go.step.sm/crypto v0.44.3/go.mod h1:gGYw4D+5J8uFhBY6dzOBvDE8iwUo+gaOpKPFLcQwv9Q=
+go.step.sm/crypto v0.44.6 h1:vQg8ujce7fNXDO8EWdriSz+ZSJpYnNh22QrFtRjdyoY=
+go.step.sm/crypto v0.44.6/go.mod h1:oKRO4jaf2MaCohJDN+/8ShImkvIgUKfJxxy87gqsnXs=
 go.step.sm/linkedca v0.20.1 h1:bHDn1+UG1NgRrERkWbbCiAIvv4lD5NOFaswPDTyO5vU=
 go.step.sm/linkedca v0.20.1/go.mod h1:Vaq4+Umtjh7DLFI1KuIxeo598vfBzgSYZUjgVJ7Syxw=
 go.uber.org/atomic v1.3.2/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
