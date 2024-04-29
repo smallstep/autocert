@@ -1,6 +1,6 @@
 module github.com/smallstep/autocert
 
-go 1.21
+go 1.22.0
 
 require (
 	github.com/golang/protobuf v1.5.4
@@ -11,8 +11,8 @@ require (
 	go.step.sm/crypto v0.44.8
 	golang.org/x/net v0.24.0
 	google.golang.org/grpc v1.63.2
-	k8s.io/api v0.30.0-alpha.3
-	k8s.io/apimachinery v0.30.0-alpha.3
+	k8s.io/api v0.30.0
+	k8s.io/apimachinery v0.30.0
 	k8s.io/utils v0.0.0-20231127182322-b307cd553661
 	sigs.k8s.io/yaml v1.4.0
 )
