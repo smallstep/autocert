@@ -8,7 +8,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smallstep/certificates v0.26.2
 	go.step.sm/cli-utils v0.9.0
-	go.step.sm/crypto v0.47.0
+	go.step.sm/crypto v0.47.1
 	golang.org/x/net v0.26.0
 	google.golang.org/grpc v1.64.0
 	k8s.io/api v0.30.0-alpha.3
