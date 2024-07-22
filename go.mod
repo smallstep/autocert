@@ -6,7 +6,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/smallstep/certificates v0.27.1
+	github.com/smallstep/certificates v0.27.2
 	go.step.sm/cli-utils v0.9.0
 	go.step.sm/crypto v0.50.0
 	golang.org/x/net v0.27.0
@@ -83,13 +83,13 @@ require (
 	github.com/urfave/cli v1.22.15 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.etcd.io/bbolt v1.3.10 // indirect
-	go.step.sm/linkedca v0.21.1 // indirect
+	go.step.sm/linkedca v0.22.1 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240318143956-a85f2c67cd81 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240624140628-dc46fd24d27d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240708141625-4ad9e859172b // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
