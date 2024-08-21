@@ -11,7 +11,7 @@ require (
 	go.step.sm/crypto v0.51.1
 	golang.org/x/net v0.28.0
 	google.golang.org/grpc v1.65.0
-	k8s.io/api v0.30.0-alpha.3
+	k8s.io/api v0.32.0-alpha.0
 	k8s.io/apimachinery v0.32.0-alpha.0
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
 	sigs.k8s.io/yaml v1.4.0
