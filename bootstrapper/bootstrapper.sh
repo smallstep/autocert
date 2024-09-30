@@ -1,9 +1,9 @@
 #!/bin/sh
 
 
-if [ -f "$STEP_ROOT" ];
+if [ -f "$STEP_ROOT" ] && [ -f "$CRT" ] && [ -f "$KEY" ];
 then
-    echo "Found existing $STEP_ROOT, skipping bootstrap"
+    echo "Found existing $STEP_ROOT, $CRT, and $KEY, skipping bootstrap"
     exit 0
 fi
 
