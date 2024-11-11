@@ -1,6 +1,7 @@
 module github.com/smallstep/autocert
 
 go 1.22.0
+toolchain go1.23.3
 
 require (
 	github.com/golang/protobuf v1.5.4
@@ -12,8 +13,8 @@ require (
 	golang.org/x/net v0.31.0
 	google.golang.org/grpc v1.67.1
 	k8s.io/api v0.32.0-alpha.0
-	k8s.io/apimachinery v0.32.0-alpha.0
-	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
+	k8s.io/apimachinery v0.32.0-beta.0
+	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -93,8 +94,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241015192408-796eee8c2d53 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
-	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
+	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
 )
