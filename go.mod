@@ -7,7 +7,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smallstep/certificates v0.28.2
-	github.com/smallstep/cli-utils v0.10.0
+	github.com/smallstep/cli-utils v0.12.1
 	go.step.sm/crypto v0.58.0
 	golang.org/x/net v0.35.0
 	google.golang.org/grpc v1.70.0
