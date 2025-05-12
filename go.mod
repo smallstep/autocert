@@ -1,6 +1,6 @@
 module github.com/smallstep/autocert
 
-go 1.23.6
+go 1.24.0
 
 toolchain go1.24.1
 
@@ -14,7 +14,7 @@ require (
 	golang.org/x/net v0.40.0
 	google.golang.org/grpc v1.72.0
 	k8s.io/api v0.33.0-alpha.2
-	k8s.io/apimachinery v0.33.0-alpha.2
+	k8s.io/apimachinery v0.34.0-alpha.0
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -50,7 +50,6 @@ require (
 	github.com/google/certificate-transparency-go v1.1.7 // indirect
 	github.com/google/go-tpm v0.9.4 // indirect
 	github.com/google/go-tspi v0.3.0 // indirect
-	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -99,5 +98,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
+	sigs.k8s.io/randfill v1.0.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 )
