@@ -34,7 +34,7 @@ type rotator struct {
 	certificate *tls.Certificate
 }
 
-func (r *rotator) getCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+func (r *rotator) getCertificate(*tls.ClientHelloInfo) (*tls.Certificate, error) {
 	r.RLock()
 	defer r.RUnlock()
 	return r.certificate, nil
@@ -62,7 +62,7 @@ func loadRootCertPool() (*x509.CertPool, error) {
 
 	pool := x509.NewCertPool()
 	if ok := pool.AppendCertsFromPEM(root); !ok {
-		return nil, errors.New("Missing or invalid root certificate")
+		return nil, errors.New("missing or invalid root certificate")
 	}
 
 	return pool, nil
@@ -91,9 +91,16 @@ func getServerName(ctx context.Context) string {
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	roots, err := loadRootCertPool()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Load certificate
@@ -125,8 +132,7 @@ func main() {
 			select {
 			case <-ticker.C:
 				fmt.Println("Checking for new certificate...")
-				err := r.loadCertificate(autocertFile, autocertKey)
-				if err != nil {
+				if err := r.loadCertificate(autocertFile, autocertKey); err != nil {
 					log.Println("Error loading certificate and key", err)
 				}
 			case <-done:
@@ -136,9 +142,9 @@ func main() {
 	}()
 	defer close(done)
 
-	lis, err := net.Listen("tcp", ":443")
+	lis, err := net.Listen("tcp", "127.0.0.1:443")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		return fmt.Errorf("failed to listen: %w", err)
 	}
 
 	srv := grpc.NewServer(grpc.Creds(credentials.NewTLS(tlsConfig)))
@@ -146,6 +152,8 @@ func main() {
 
 	log.Println("Listening on :443")
 	if err := srv.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		return fmt.Errorf("failed to serve: %w", err)
 	}
+
+	return nil
 }

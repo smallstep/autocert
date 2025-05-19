@@ -33,7 +33,7 @@ type rotator struct {
 	certificate *tls.Certificate
 }
 
-func (r *rotator) getClientCertificate(cri *tls.CertificateRequestInfo) (*tls.Certificate, error) {
+func (r *rotator) getClientCertificate(*tls.CertificateRequestInfo) (*tls.Certificate, error) {
 	r.RLock()
 	defer r.RUnlock()
 	return r.certificate, nil
@@ -61,7 +61,7 @@ func loadRootCertPool() (*x509.CertPool, error) {
 
 	pool := x509.NewCertPool()
 	if ok := pool.AppendCertsFromPEM(root); !ok {
-		return nil, errors.New("Missing or invalid root certificate")
+		return nil, errors.New("missing or invalid root certificate")
 	}
 
 	return pool, nil
@@ -92,17 +92,25 @@ func sayHelloAgain(c hello.GreeterClient) error {
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	// Read the root certificate for our CA from disk
 	roots, err := loadRootCertPool()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Load certificate
 	r := &rotator{}
 	if err := r.loadCertificate(autocertFile, autocertKey); err != nil {
-		log.Fatal("error loading certificate and key", err)
+		return fmt.Errorf("error loading certificate and key: %w", err)
 	}
+
 	tlsConfig := &tls.Config{
 		RootCAs:          roots,
 		MinVersion:       tls.VersionTLS12,
@@ -131,8 +139,7 @@ func main() {
 			select {
 			case <-ticker.C:
 				fmt.Println("Checking for new certificate...")
-				err := r.loadCertificate(autocertFile, autocertKey)
-				if err != nil {
+				if err := r.loadCertificate(autocertFile, autocertKey); err != nil {
 					log.Println("Error loading certificate and key", err)
 				}
 			case <-done:
@@ -144,19 +151,19 @@ func main() {
 
 	// Set up a connection to the server.
 	address := os.Getenv("HELLO_MTLS_URL")
-	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		return fmt.Errorf("did not connect: %w", err)
 	}
 	defer conn.Close()
 	client := hello.NewGreeterClient(conn)
 
 	for {
 		if err := sayHello(client); err != nil {
-			log.Fatalf("could not greet: %v", err)
+			return fmt.Errorf("could not greet: %w", err)
 		}
 		if err := sayHelloAgain(client); err != nil {
-			log.Fatalf("could not greet: %v", err)
+			return fmt.Errorf("could not greet: %w", err)
 		}
 		time.Sleep(requestFrequency)
 	}
