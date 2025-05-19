@@ -27,7 +27,7 @@ type rotator struct {
 	certificate *tls.Certificate
 }
 
-func (r *rotator) getClientCertificate(cri *tls.CertificateRequestInfo) (*tls.Certificate, error) {
+func (r *rotator) getClientCertificate(*tls.CertificateRequestInfo) (*tls.Certificate, error) {
 	r.RLock()
 	defer r.RUnlock()
 	return r.certificate, nil
@@ -55,25 +55,32 @@ func loadRootCertPool() (*x509.CertPool, error) {
 
 	pool := x509.NewCertPool()
 	if ok := pool.AppendCertsFromPEM(root); !ok {
-		return nil, errors.New("Missing or invalid root certificate")
+		return nil, errors.New("missing or invalid root certificate")
 	}
 
 	return pool, nil
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	url := os.Getenv("HELLO_MTLS_URL")
 
 	// Read the root certificate for our CA from disk
 	roots, err := loadRootCertPool()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Load certificate
 	r := &rotator{}
 	if err := r.loadCertificate(autocertFile, autocertKey); err != nil {
-		log.Fatal("error loading certificate and key", err)
+		return fmt.Errorf("error loading certificate and key: %w", err)
 	}
 
 	// Create an HTTPS client using our cert, key & pool
@@ -126,13 +133,13 @@ func main() {
 		// Make request
 		r, err := client.Get(url)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
+		defer r.Body.Close() //nolint:gocritic // false positive
 
-		defer r.Body.Close()
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		fmt.Printf("%s: %s\n", time.Now().Format(time.RFC3339), strings.Trim(string(body), "\n"))
