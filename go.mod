@@ -12,7 +12,7 @@ require (
 	github.com/smallstep/cli-utils v0.12.1
 	go.step.sm/crypto v0.67.0
 	golang.org/x/net v0.42.0
-	google.golang.org/grpc v1.73.0
+	google.golang.org/grpc v1.74.2
 	k8s.io/api v0.33.0-alpha.2
 	k8s.io/apimachinery v0.33.0-alpha.2
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
@@ -46,11 +46,11 @@ require (
 	github.com/go-chi/chi/v5 v5.2.2 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.4 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/glog v1.2.4 // indirect
+	github.com/golang/glog v1.2.5 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/certificate-transparency-go v1.1.7 // indirect
 	github.com/google/go-tpm v0.9.5 // indirect
