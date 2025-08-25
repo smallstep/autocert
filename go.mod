@@ -13,7 +13,7 @@ require (
 	go.step.sm/crypto v0.70.0
 	golang.org/x/net v0.43.0
 	google.golang.org/grpc v1.75.0
-	k8s.io/api v0.33.0-alpha.2
+	k8s.io/api v0.35.0-alpha.0
 	k8s.io/apimachinery v0.35.0-alpha.0
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
 	sigs.k8s.io/yaml v1.6.0
