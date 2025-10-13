@@ -12,7 +12,7 @@ require (
 	github.com/smallstep/cli-utils v0.12.1
 	go.step.sm/crypto v0.70.0
 	golang.org/x/net v0.44.0
-	google.golang.org/grpc v1.75.1
+	google.golang.org/grpc v1.76.0
 	k8s.io/api v0.35.0-alpha.0
 	k8s.io/apimachinery v0.35.0-alpha.0
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
@@ -45,7 +45,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/go-chi/chi/v5 v5.2.2 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.4 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.1 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.2 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
