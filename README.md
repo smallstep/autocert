@@ -74,7 +74,7 @@ admissionregistration.k8s.io/v1
 To install `autocert` run:
 
 ```bash
-kubectl run autocert-init -it --rm --image cr.step.sm/smallstep/autocert-init --restart Never
+kubectl run autocert-init -it --rm --image cr.smallstep.com/smallstep/autocert-init --restart Never
 ```
 
 💥 installation complete.

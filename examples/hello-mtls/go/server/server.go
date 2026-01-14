@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -27,7 +27,7 @@ type rotator struct {
 	certificate *tls.Certificate
 }
 
-func (r *rotator) getCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+func (r *rotator) getCertificate(*tls.ClientHelloInfo) (*tls.Certificate, error) {
 	r.RLock()
 	defer r.RUnlock()
 	return r.certificate, nil
@@ -55,13 +55,20 @@ func loadRootCertPool() (*x509.CertPool, error) {
 
 	pool := x509.NewCertPool()
 	if ok := pool.AppendCertsFromPEM(root); !ok {
-		return nil, errors.New("Missing or invalid root certificate")
+		return nil, errors.New("missing or invalid root certificate")
 	}
 
 	return pool, nil
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.TLS == nil || len(r.TLS.PeerCertificates) == 0 {
@@ -71,13 +78,13 @@ func main() {
 			fmt.Fprintf(w, "Hello, %s!\n", name)
 		}
 	})
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintf(w, "Ok\n")
 	})
 
 	roots, err := loadRootCertPool()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	r := &rotator{}
@@ -94,15 +101,16 @@ func main() {
 		GetCertificate: r.getCertificate,
 	}
 	srv := &http.Server{
-		Addr:      ":443",
-		Handler:   mux,
-		TLSConfig: cfg,
+		Addr:              ":443",
+		Handler:           mux,
+		TLSConfig:         cfg,
+		ReadHeaderTimeout: 30 * time.Second,
 	}
 
 	// Load certificate
 	err = r.loadCertificate(autocertFile, autocertKey)
 	if err != nil {
-		log.Fatal("Error loading certificate and key", err)
+		return fmt.Errorf("error loading certificate and key: %w", err)
 	}
 
 	// Schedule periodic re-load of certificate
@@ -116,8 +124,7 @@ func main() {
 			select {
 			case <-ticker.C:
 				fmt.Println("Checking for new certificate...")
-				err := r.loadCertificate(autocertFile, autocertKey)
-				if err != nil {
+				if err := r.loadCertificate(autocertFile, autocertKey); err != nil {
 					log.Println("Error loading certificate and key", err)
 				}
 			case <-done:
@@ -130,8 +137,9 @@ func main() {
 	log.Println("Listening no :443")
 
 	// Start serving HTTPS
-	err = srv.ListenAndServeTLS("", "")
-	if err != nil {
-		log.Fatal("ListenAndServerTLS: ", err)
+	if err := srv.ListenAndServeTLS("", ""); err != nil {
+		return fmt.Errorf("ListenAndServerTLS: %w", err)
 	}
+
+	return nil
 }
