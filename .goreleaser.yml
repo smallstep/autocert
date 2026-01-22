@@ -98,9 +98,10 @@ release:
     Below is an example using `cosign` to verify a release artifact:
 
     ```
-    COSIGN_EXPERIMENTAL=1 cosign verify-blob \
-      --certificate ~/Downloads/autocert_linux_{{ .Version }}_amd64.tar.gz.pem \
-      --signature ~/Downloads/autocert_linux{{ .Version }}_amd64.tar.gz.sig \
+    cosign verify-blob \
+      --bundle ~/Downloads/autocert_linux_{{ .Version }}_amd64.tar.gz.sigstore.json \
+      --certificate-identity-regexp "https://github\.com/smallstep/workflows/.*" \
+      --certificate-oidc-issuer https://token.actions.githubusercontent.com \
       ~/Downloads/autocert_linux{{ .Version }}_amd64.tar.gz
     ```
 
