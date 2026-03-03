@@ -6,6 +6,9 @@ on:
     tags:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
+permissions:
+  contents: read
+
 jobs:
   ci:
     uses: smallstep/autocert/.github/workflows/ci.yml@master
@@ -14,6 +17,8 @@ jobs:
   create_release:
     name: Create Release
     needs: ci
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     env:
       INIT_DOCKER_IMAGE: smallstep/autocert-init
