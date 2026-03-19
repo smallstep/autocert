@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 	"unicode"
@@ -45,6 +46,7 @@ const (
 	sansAnnotationKey             = "autocert.step.sm/sans"
 	ownerAnnotationKey            = "autocert.step.sm/owner"
 	modeAnnotationKey             = "autocert.step.sm/mode"
+	mountPathAnnotationKey        = "autocert.step.sm/mount-path"
 	volumeMountPath               = "/var/run/autocert.step.sm"
 	tokenSecretKey                = "token"
 	//nolint:gosec // not a secret
@@ -59,6 +61,7 @@ type Config struct {
 	LogFormat                       string           `yaml:"logFormat"`
 	CaURL                           string           `yaml:"caUrl"`
 	CertLifetime                    string           `yaml:"certLifetime"`
+	CertMountPath                   string           `yaml:"certMountPath"`
 	Bootstrapper                    corev1.Container `yaml:"bootstrapper"`
 	Renewer                         corev1.Container `yaml:"renewer"`
 	CertsVolume                     corev1.Volume    `yaml:"certsVolume"`
@@ -117,6 +120,14 @@ func (c Config) GetProvisionerPasswordPath() string {
 	}
 
 	return "/home/step/password/password"
+}
+
+// GetCertMountPath returns the certificate mount path, defaults to "/var/run/autocert.step.sm"
+func (c Config) GetCertMountPath() string {
+	if c.CertMountPath != "" {
+		return c.CertMountPath
+	}
+	return "/var/run/autocert.step.sm"
 }
 
 // PatchOperation represents a RFC6902 JSONPatch Operation
@@ -258,7 +269,7 @@ func createTokenSecret(prefix, namespace, token string) (string, error) {
 // mkBootstrapper generates a bootstrap container based on the template defined in Config. It
 // generates a new bootstrap token and mounts it, along with other required configuration, as
 // environment variables in the returned bootstrap container.
-func mkBootstrapper(config *Config, podName, commonName, duration, owner, mode, namespace string, sans []string, provisioner *ca.Provisioner) (corev1.Container, error) {
+func mkBootstrapper(config *Config, podName, commonName, duration, owner, mode, namespace string, sans []string, provisioner *ca.Provisioner, mountPath string) (corev1.Container, error) {
 	b := config.Bootstrapper
 
 	token, err := provisioner.Token(commonName, sans...)
@@ -332,13 +343,32 @@ func mkBootstrapper(config *Config, podName, commonName, duration, owner, mode, 
 		corev1.EnvVar{
 			Name:  "CLUSTER_DOMAIN",
 			Value: config.ClusterDomain,
+		},
+		corev1.EnvVar{
+			Name:  "CRT",
+			Value: filepath.Join(mountPath, "site.crt"),
+		},
+		corev1.EnvVar{
+			Name:  "KEY",
+			Value: filepath.Join(mountPath, "site.key"),
+		},
+		corev1.EnvVar{
+			Name:  "STEP_ROOT",
+			Value: filepath.Join(mountPath, "root.crt"),
 		})
+
+	// Update volume mounts
+	for i := range b.VolumeMounts {
+		if b.VolumeMounts[i].Name == config.CertsVolume.Name {
+			b.VolumeMounts[i].MountPath = mountPath
+		}
+	}
 
 	return b, nil
 }
 
 // mkRenewer generates a new renewer based on the template provided in Config.
-func mkRenewer(config *Config, podName, commonName, namespace string) corev1.Container {
+func mkRenewer(config *Config, podName, commonName, namespace string, mountPath string) corev1.Container {
 	r := config.Renewer
 	r.Env = append(r.Env,
 		corev1.EnvVar{
@@ -360,7 +390,27 @@ func mkRenewer(config *Config, podName, commonName, namespace string) corev1.Con
 		corev1.EnvVar{
 			Name:  "CLUSTER_DOMAIN",
 			Value: config.ClusterDomain,
+		},
+		corev1.EnvVar{
+			Name:  "CRT",
+			Value: filepath.Join(mountPath, "site.crt"),
+		},
+		corev1.EnvVar{
+			Name:  "KEY",
+			Value: filepath.Join(mountPath, "site.key"),
+		},
+		corev1.EnvVar{
+			Name:  "STEP_ROOT",
+			Value: filepath.Join(mountPath, "root.crt"),
 		})
+
+	// Update volume mounts
+	for i := range r.VolumeMounts {
+		if r.VolumeMounts[i].Name == config.CertsVolume.Name {
+			r.VolumeMounts[i].MountPath = mountPath
+		}
+	}
+
 	return r
 }
 
@@ -414,10 +464,10 @@ func addVolumes(existing, nu []corev1.Volume, path string) (ops []PatchOperation
 	return ops
 }
 
-func addCertsVolumeMount(volumeName string, containers []corev1.Container, containerType string, first bool) (ops []PatchOperation) {
+func addCertsVolumeMount(volumeName string, containers []corev1.Container, containerType string, first bool, mountPath string) (ops []PatchOperation) {
 	volumeMount := corev1.VolumeMount{
 		Name:      volumeName,
-		MountPath: volumeMountPath,
+		MountPath: mountPath,
 		ReadOnly:  true,
 	}
 
@@ -499,8 +549,15 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 	duration := annotations[durationWebhookStatusKey]
 	owner := annotations[ownerAnnotationKey]
 	mode := annotations[modeAnnotationKey]
-	renewer := mkRenewer(config, name, commonName, namespace)
-	bootstrapper, err := mkBootstrapper(config, name, commonName, duration, owner, mode, namespace, sans, provisioner)
+
+	mountPath := config.GetCertMountPath()
+
+	if podMountPath := annotations[mountPathAnnotationKey]; podMountPath != "" {
+		mountPath = podMountPath
+	}
+
+	renewer := mkRenewer(config, name, commonName, namespace, mountPath)
+	bootstrapper, err := mkBootstrapper(config, name, commonName, duration, owner, mode, namespace, sans, provisioner, mountPath)
 	if err != nil {
 		return nil, err
 	}
@@ -516,8 +573,8 @@ func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Pr
 		ops = append(ops, addContainers(pod.Spec.InitContainers, []corev1.Container{bootstrapper}, "/spec/initContainers")...)
 	}
 
-	ops = append(ops, addCertsVolumeMount(config.CertsVolume.Name, pod.Spec.Containers, "containers", false)...)
-	ops = append(ops, addCertsVolumeMount(config.CertsVolume.Name, pod.Spec.InitContainers, "initContainers", first)...)
+	ops = append(ops, addCertsVolumeMount(config.CertsVolume.Name, pod.Spec.Containers, "containers", false, mountPath)...)
+	ops = append(ops, addCertsVolumeMount(config.CertsVolume.Name, pod.Spec.InitContainers, "initContainers", first, mountPath)...)
 	if !bootstrapperOnly {
 		ops = append(ops, addContainers(pod.Spec.Containers, []corev1.Container{renewer}, "/spec/containers")...)
 	}
