@@ -136,7 +136,7 @@ func escapeJSONPath(path string) string {
 }
 
 func loadConfig(file string) (*Config, error) {
-	data, err := os.ReadFile(file)
+	data, err := os.ReadFile(file) //nolint:gosec // file path comes from trusted configuration
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func createTokenSecret(prefix, namespace, token string) (string, error) {
 		log.Errorf("Secret creation error. Response: %v", resp)
 		return "", errors.Wrap(err, "secret creation")
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // close errors are unactionable in defer
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		log.Errorf("Secret creation error (!2XX). Response: %v", resp)
 		var rbody []byte
@@ -241,7 +241,7 @@ func createTokenSecret(prefix, namespace, token string) (string, error) {
 			ctxLog.WithField("error", err).Error("Error deleting expired bootstrap token secret")
 			return
 		}
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck // close errors are unactionable in defer
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			ctxLog.WithFields(log.Fields{
 				"status":     resp.Status,
@@ -483,12 +483,12 @@ func addAnnotations(existing, nu map[string]string) (ops []PatchOperation) {
 func patch(pod *corev1.Pod, namespace string, config *Config, provisioner *ca.Provisioner) ([]byte, error) {
 	var ops []PatchOperation
 
-	name := pod.ObjectMeta.GetName()
+	name := pod.GetName()
 	if name == "" {
-		name = pod.ObjectMeta.GetGenerateName()
+		name = pod.GetGenerateName()
 	}
 
-	annotations := pod.ObjectMeta.GetAnnotations()
+	annotations := pod.GetAnnotations()
 	commonName := annotations[admissionWebhookAnnotationKey]
 	first := strings.EqualFold(annotations[firstAnnotationKey], "true")
 	sans := strings.Split(annotations[sansAnnotationKey], ",")
@@ -713,7 +713,7 @@ func main() {
 			if r.URL.Path == "/healthz" {
 				log.Info("/healthz")
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprintln(w, "ok")
+				fmt.Fprintln(w, "ok") //nolint:errcheck // write errors on health endpoint are unactionable
 				return
 			}
 
@@ -795,7 +795,7 @@ func main() {
 // readPasswordFromFile reads and returns the password from the given filename.
 // The contents of the file will be trimmed at the right.
 func readPasswordFromFile(filename string) ([]byte, error) {
-	password, err := os.ReadFile(filename)
+	password, err := os.ReadFile(filename) //nolint:gosec // file path comes from trusted configuration
 	if err != nil {
 		return nil, errs.FileError(err, filename)
 	}
