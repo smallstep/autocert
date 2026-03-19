@@ -78,7 +78,7 @@ func (kc *k8sClient) DeleteRequest(url string) (*http.Request, error) {
 }
 
 func (kc *k8sClient) Do(req *http.Request) (*http.Response, error) {
-	return kc.httpClient.Do(req)
+	return kc.httpClient.Do(req) //nolint:gosec // URL is constructed from trusted k8s API server configuration
 }
 
 func (kc *k8sClient) Host() string {

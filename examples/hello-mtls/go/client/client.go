@@ -131,11 +131,11 @@ func run() error {
 
 	for {
 		// Make request
-		r, err := client.Get(url)
+		r, err := client.Get(url) //nolint:gosec // URL comes from trusted environment configuration
 		if err != nil {
 			return err
 		}
-		defer r.Body.Close() //nolint:gocritic // false positive
+		defer r.Body.Close() //nolint:errcheck,gocritic // false positive
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {

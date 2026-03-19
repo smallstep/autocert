@@ -75,7 +75,7 @@ func sayHello(c hello.GreeterClient) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Greeting: %s", r.Message)
+	log.Printf("Greeting: %s", r.Message) //nolint:gosec // intentional logging of server greeting response
 	return nil
 }
 
@@ -87,7 +87,7 @@ func sayHelloAgain(c hello.GreeterClient) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Greeting: %s", r.Message)
+	log.Printf("Greeting: %s", r.Message) //nolint:gosec // intentional logging of server greeting response
 	return nil
 }
 
@@ -155,7 +155,7 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("did not connect: %w", err)
 	}
-	defer conn.Close()
+	defer conn.Close() //nolint:errcheck // close errors are unactionable in defer
 	client := hello.NewGreeterClient(conn)
 
 	for {

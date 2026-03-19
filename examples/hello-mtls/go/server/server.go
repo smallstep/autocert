@@ -72,14 +72,14 @@ func run() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.TLS == nil || len(r.TLS.PeerCertificates) == 0 {
-			fmt.Fprintf(w, "Unauthenticated")
+			fmt.Fprintf(w, "Unauthenticated") //nolint:errcheck // write errors are unactionable
 		} else {
 			name := r.TLS.PeerCertificates[0].Subject.CommonName
-			fmt.Fprintf(w, "Hello, %s!\n", name)
+			fmt.Fprintf(w, "Hello, %s!\n", name) //nolint:errcheck,gosec // write errors are unactionable; name sourced from verified mTLS client certificate
 		}
 	})
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, "Ok\n")
+		fmt.Fprintf(w, "Ok\n") //nolint:errcheck // write errors are unactionable
 	})
 
 	roots, err := loadRootCertPool()
