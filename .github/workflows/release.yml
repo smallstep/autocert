@@ -11,6 +11,10 @@ permissions:
 
 jobs:
   ci:
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     uses: smallstep/autocert/.github/workflows/ci.yml@master
     secrets: inherit
 
