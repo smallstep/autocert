@@ -10,7 +10,7 @@ require (
 	github.com/smallstep/cli-utils v0.12.2
 	go.step.sm/crypto v0.77.2
 	golang.org/x/net v0.52.0
-	google.golang.org/grpc v1.79.3
+	google.golang.org/grpc v1.80.0
 	k8s.io/api v0.36.0-alpha.2
 	k8s.io/apimachinery v0.36.0-alpha.2
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2
