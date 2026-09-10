@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI coding agents working in this repository. Claude Code loads it through the one-line `@AGENTS.md` import in `CLAUDE.md`.
+Guidance for AI coding agents working in this repository. Claude Code loads it through the one-line `@../AGENTS.md` import in `.claude/CLAUDE.md`.
 
 ## Overview
 
