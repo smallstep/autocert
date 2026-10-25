@@ -760,6 +760,10 @@ func main() {
 			}
 
 			resp, err := json.Marshal(v1beta1.AdmissionReview{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "admission.k8s.io/v1beta1",
+					Kind:       "AdmissionReview",
+				},
 				Response: response,
 			})
 			if err != nil {
